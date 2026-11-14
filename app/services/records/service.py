@@ -8,6 +8,13 @@ from app.core.encryption import encrypt_secret
 from app.database.models import Category, Record, RecordField, RecordType, User
 
 
+async def get_record(session: AsyncSession, record_id: UUID) -> Record | None:
+    result = await session.execute(
+        select(Record).where(Record.id == record_id).options(selectinload(Record.fields))
+    )
+    return result.scalar_one_or_none()
+
+
 async def get_category_by_code(session: AsyncSession, code: str) -> Category | None:
     result = await session.execute(select(Category).where(Category.code == code))
     return result.scalar_one_or_none()

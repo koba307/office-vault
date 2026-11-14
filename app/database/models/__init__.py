@@ -159,3 +159,11 @@ class AuditLog(Base):
     result: Mapped[str] = mapped_column(String(32), default="SUCCESS")
     metadata_: Mapped[dict | None] = mapped_column("metadata", JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    user_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("users.id"), primary_key=True)
+    record_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), ForeignKey("records.id"), primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
