@@ -1,3 +1,3 @@
-from app.bot.handlers import menu, start
+from app.bot.handlers import menu, records, start
 
-__all__ = ["start", "menu"]
+__all__ = ["start", "menu", "records"]

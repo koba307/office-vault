@@ -79,10 +79,11 @@ async def main() -> None:
     dp = Dispatcher(storage=storage)
 
     # TODO: register routers
-    from app.bot.handlers import start, menu
+    from app.bot.handlers import start, menu, records
 
     dp.include_router(start.router)
     dp.include_router(menu.router)
+    dp.include_router(records.router)
 
     logger.info("Starting OFFICE VAULT bot...")
     await dp.start_polling(bot)
