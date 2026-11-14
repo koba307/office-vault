@@ -2,12 +2,14 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+from app.database.session import async_session
 from app.bot.states.add_record import AddRecord
 from app.core.config import settings
 from app.database.models import RecordType, RoleCode
-from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active, user_can_access_category
-from app.services.records.service import create_record, list_records
+from app.core.encryption import decrypt_secret
+from app.services.auth.permissions import log_audit
+from app.services.records.service import create_record, get_record, list_records
 
 router = Router()
 
@@ -52,13 +54,14 @@ async def type_callback(callback: CallbackQuery) -> None:
         records = await list_records(session, category, rtype)
 
     lines = [f"{_type_title(rec_type)}\n\nРаздел: {category}\n"]
+    buttons = []
     if not records:
         lines.append("Записей пока нет.")
     else:
         for r in records:
             lines.append(f"• {r.title}")
+            buttons.append([InlineKeyboardButton(text=f"📄 {r.title}", callback_data=f"record:view:{r.id}")])
 
-    buttons = []
     if user and user.role in (RoleCode.SUPERADMIN, RoleCode.BOSS):
         buttons.append([InlineKeyboardButton(text="➕ Добавить запись", callback_data=f"record:add:{rec_type}:{category}")])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=f"menu:category:{category}")])
@@ -179,3 +182,62 @@ async def _finalize_record(message: Message, state: FSMContext) -> None:
 
     await state.clear()
     await message.answer(f"✅ Запись «{record.title}» создана.")
+
+
+@router.callback_query(F.data.startswith("record:view:"))
+async def view_record(callback: CallbackQuery) -> None:
+    rid = (callback.data or "").split(":")[-1]
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not is_user_active(user):
+            await callback.answer("Нет доступа", show_alert=True)
+            return
+        from uuid import UUID
+        record = await get_record(session, UUID(rid))
+        if not record:
+            await callback.answer("Запись не найдена")
+            return
+
+    lines = [f"📄 <b>{record.title}</b>\n"]
+    if record.description:
+        lines.append(record.description + "\n")
+    buttons = []
+    for f in sorted(record.fields, key=lambda x: x.sort_order):
+        if f.encrypted_value:
+            lines.append(f"{f.field_label}: ••••••••")
+            buttons.append([InlineKeyboardButton(text=f"👁 Показать {f.field_label}", callback_data=f"record:reveal:{record.id}:{f.id}")])
+        else:
+            lines.append(f"{f.field_label}: {f.value_text or '-'}")
+    buttons.append([InlineKeyboardButton(text="⭐ В избранное", callback_data=f"favorite:add:{record.id}")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
+
+    await callback.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("record:reveal:"))
+async def reveal_secret(callback: CallbackQuery) -> None:
+    parts = (callback.data or "").split(":")
+    if len(parts) < 4:
+        await callback.answer()
+        return
+    rid, fid = parts[2], parts[3]
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not is_user_active(user):
+            await callback.answer("Нет доступа", show_alert=True)
+            return
+        from uuid import UUID
+        record = await get_record(session, UUID(rid))
+        if not record:
+            await callback.answer("Не найдено")
+            return
+        field = next((f for f in record.fields if str(f.id) == fid), None)
+        if not field or not field.encrypted_value:
+            await callback.answer("Нет секрета")
+            return
+        plain = decrypt_secret(field.encrypted_value)
+        await log_audit(session, user.id, "REVEAL_SECRET", "RecordField", fid)
+
+    await callback.message.answer(f"🔑 {field.field_label}:\n<code>{plain}</code>", parse_mode="HTML")
+    await callback.answer("Показано. Секрет будет в истории чата.")
