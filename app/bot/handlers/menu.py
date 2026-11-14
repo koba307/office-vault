@@ -1,5 +1,9 @@
 from aiogram import Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+
+from app.database.models import RoleCode
+from app.database.session import async_session
+from app.services.auth.permissions import get_user_by_telegram_id
 
 router = Router()
 
@@ -25,10 +29,12 @@ def get_main_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
 async def menu_callback(callback: CallbackQuery) -> None:
     data = callback.data
     if data == "menu:main":
-        is_admin = callback.from_user.id  # TODO: check role
+        async with async_session() as session:
+            user = await get_user_by_telegram_id(session, callback.from_user.id)
+            is_admin = bool(user and user.role == RoleCode.SUPERADMIN)
         await callback.message.edit_text(
             "🏢 <b>OFFICE VAULT</b>\n\nВыберите рабочий раздел:",
-            reply_markup=get_main_menu_keyboard(is_admin=False),
+            reply_markup=get_main_menu_keyboard(is_admin=is_admin),
         )
     elif data.startswith("menu:category:"):
         category = data.split(":")[-1]

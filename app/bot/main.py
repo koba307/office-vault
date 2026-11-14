@@ -71,13 +71,14 @@ async def main() -> None:
     storage = RedisStorage.from_url(settings.redis_url)
     dp = Dispatcher(storage=storage)
 
-    from app.bot.handlers import favorites, menu, records, search, start
+    from app.bot.handlers import admin, favorites, menu, records, search, start
 
     dp.include_router(start.router)
     dp.include_router(menu.router)
     dp.include_router(records.router)
     dp.include_router(search.router)
     dp.include_router(favorites.router)
+    dp.include_router(admin.router)
 
     logger.info("Starting OFFICE VAULT bot...")
     await dp.start_polling(bot)
