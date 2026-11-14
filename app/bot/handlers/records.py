@@ -9,7 +9,7 @@ from app.database.models import RecordType, RoleCode
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active, user_can_access_category
 from app.core.encryption import decrypt_secret
 from app.services.auth.permissions import log_audit
-from app.services.records.service import create_record, get_record, list_records
+from app.services.records.service import create_record, get_record, list_records, archive_record, soft_delete_record
 
 router = Router()
 
@@ -209,6 +209,9 @@ async def view_record(callback: CallbackQuery) -> None:
         else:
             lines.append(f"{f.field_label}: {f.value_text or '-'}")
     buttons.append([InlineKeyboardButton(text="⭐ В избранное", callback_data=f"favorite:add:{record.id}")])
+    if user and user.role in (RoleCode.SUPERADMIN, RoleCode.BOSS):
+        buttons.append([InlineKeyboardButton(text="🗄 Архивировать", callback_data=f"record:archive:{record.id}")])
+        buttons.append([InlineKeyboardButton(text="🗑 Удалить", callback_data=f"record:delete:{record.id}")])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
 
     await callback.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
@@ -241,3 +244,29 @@ async def reveal_secret(callback: CallbackQuery) -> None:
 
     await callback.message.answer(f"🔑 {field.field_label}:\n<code>{plain}</code>", parse_mode="HTML")
     await callback.answer("Показано. Секрет будет в истории чата.")
+
+
+@router.callback_query(F.data.startswith("record:archive:"))
+async def do_archive(callback: CallbackQuery) -> None:
+    rid = (callback.data or "").split(":")[-1]
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not user or user.role not in (RoleCode.SUPERADMIN, RoleCode.BOSS):
+            await callback.answer("Нет прав", show_alert=True)
+            return
+        await archive_record(session, UUID(rid), user.id)
+    await callback.answer("Архивировано")
+    await callback.message.edit_text("Запись перемещена в архив.")
+
+
+@router.callback_query(F.data.startswith("record:delete:"))
+async def do_delete(callback: CallbackQuery) -> None:
+    rid = (callback.data or "").split(":")[-1]
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not user or user.role not in (RoleCode.SUPERADMIN, RoleCode.BOSS):
+            await callback.answer("Нет прав", show_alert=True)
+            return
+        await soft_delete_record(session, UUID(rid), user.id)
+    await callback.answer("Удалено (мягко)")
+    await callback.message.edit_text("Запись помечена как удалённая.")
