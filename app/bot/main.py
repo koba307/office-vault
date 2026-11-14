@@ -8,13 +8,10 @@ from aiogram.fsm.storage.redis import RedisStorage
 
 from app.core.config import settings
 from app.database.models import Base
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from app.database.session import async_session, engine
 
 logging.basicConfig(level=settings.log_level)
 logger = logging.getLogger(__name__)
-
-engine = create_async_engine(settings.database_url, echo=False)
-async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 async def init_db() -> None:
