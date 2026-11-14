@@ -25,7 +25,6 @@ async def seed_system_data() -> None:
     from app.database.models import Category, Group, RoleCode, User, UserStatus
 
     async with async_session() as session:
-        # Проверяем, есть ли уже системные категории
         result = await session.execute(
             Category.__table__.select().where(Category.code == "holodka")
         )
@@ -33,7 +32,6 @@ async def seed_system_data() -> None:
             logger.info("System categories already exist, skipping seed")
             return
 
-        # 4 корневые категории
         categories = [
             Category(code="holodka", name="Холодка", category_type="root", sort_order=1),
             Category(code="second_stage", name="2й Этап", category_type="root", sort_order=2),
@@ -42,7 +40,6 @@ async def seed_system_data() -> None:
         ]
         session.add_all(categories)
 
-        # Системные группы
         groups = [
             Group(code="GROUP_HOLODKA", name="Холодка", is_system=True),
             Group(code="GROUP_SECOND_STAGE", name="2й Этап", is_system=True),
@@ -51,7 +48,6 @@ async def seed_system_data() -> None:
         ]
         session.add_all(groups)
 
-        # SUPERADMIN
         superadmin = User(
             telegram_id=settings.superadmin_telegram_id,
             display_name="SUPERADMIN",
@@ -75,12 +71,13 @@ async def main() -> None:
     storage = RedisStorage.from_url(settings.redis_url)
     dp = Dispatcher(storage=storage)
 
-    # TODO: register routers
-    from app.bot.handlers import start, menu, records
+    from app.bot.handlers import favorites, menu, records, search, start
 
     dp.include_router(start.router)
     dp.include_router(menu.router)
     dp.include_router(records.router)
+    dp.include_router(search.router)
+    dp.include_router(favorites.router)
 
     logger.info("Starting OFFICE VAULT bot...")
     await dp.start_polling(bot)
