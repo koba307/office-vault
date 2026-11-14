@@ -15,6 +15,30 @@ async def get_record(session: AsyncSession, record_id: UUID) -> Record | None:
     return result.scalar_one_or_none()
 
 
+async def archive_record(session: AsyncSession, record_id: UUID, user_id: UUID) -> None:
+    record = await get_record(session, record_id)
+    if record:
+        record.status = "ARCHIVED"
+        record.updated_by = user_id
+        await session.commit()
+
+
+async def soft_delete_record(session: AsyncSession, record_id: UUID, user_id: UUID) -> None:
+    record = await get_record(session, record_id)
+    if record:
+        record.status = "DELETED"
+        record.updated_by = user_id
+        await session.commit()
+
+
+async def restore_record(session: AsyncSession, record_id: UUID, user_id: UUID) -> None:
+    record = await get_record(session, record_id)
+    if record and record.status in ("ARCHIVED", "DELETED"):
+        record.status = "ACTIVE"
+        record.updated_by = user_id
+        await session.commit()
+
+
 async def get_category_by_code(session: AsyncSession, code: str) -> Category | None:
     result = await session.execute(select(Category).where(Category.code == code))
     return result.scalar_one_or_none()
