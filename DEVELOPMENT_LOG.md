@@ -26,13 +26,14 @@
 
 ### Verification
 
-- Commit: pending
-- Pushed to `main`: pending
-- Tag: pending
+- Commit: `86e07a4` — `phase-07: implement search, favorites and recent records`.
+- Pushed to `main`: remote commit matches `86e07a4`.
+- Tag `v0.7.0-phase-07` created and pushed, points to `86e07a4`.
 
 ### Phase status
 
-- Phase 07 implementation complete, pending commit/push/tag/verify.
+- Phase 07 marked `GITHUB_BACKUP_VERIFIED`.
+- Phase 08 ready to begin.
 
 ## 2026-11-15 — Phase 06: Files & Storage
 

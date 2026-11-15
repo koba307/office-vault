@@ -73,6 +73,7 @@ All notable changes to this project are documented here.
 - Phase 07: `app/services/recent/service.py` — recent records with history, access check.
 - Phase 07: `app/bot/handlers/recent.py` — recent list, pagination, clear history.
 - Phase 07: Tests for search, favorites, recent (583 tests).
+- Phase 07: Permission-aware search with filters, favorites with access re-check, recent history.
 
 ### Fixed
 
