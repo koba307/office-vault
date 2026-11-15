@@ -1,5 +1,13 @@
 # DEVELOPMENT LOG
 
+## 2026-11-15 — Multi-Agent Architecture Instruction
+
+### Actions
+
+- Saved global multi-agent 3+1 instruction to `docs/MULTI_AGENT_INSTRUCTIONS.md`.
+- From this point, all tasks in this project use 3 parallel independent agents + 1 orchestrator (GPT-6 Luna).
+- Agents: deepseek-v4.1-flash (primary executor), claude-haiku-5-5 (independent executor), qwen3.8-flash (validation & optimization).
+
 ## 2026-11-15 — Phase 03: Authentication, Roles, Groups & Permission Service
 
 ### Completed
