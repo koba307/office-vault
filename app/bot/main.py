@@ -29,6 +29,7 @@ async def main() -> None:
 
     from app.bot.handlers import (
         admin,
+        archive,
         categories,
         favorites,
         files,
@@ -49,6 +50,7 @@ async def main() -> None:
     for router in (
         start.router,
         navigation.router,
+        archive.router,
         menu.router,
         categories.router,
         records.router,
@@ -71,6 +73,9 @@ async def main() -> None:
 
     dp.include_router(start.router)
     dp.include_router(navigation.router)
+    # archive.router раньше menu.router: полный экран архива Phase 05
+    # перекрывает упрощённый список menu:archive из Phase 04.
+    dp.include_router(archive.router)
     dp.include_router(menu.router)
     dp.include_router(categories.router)
     dp.include_router(records.router)

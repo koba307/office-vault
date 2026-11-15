@@ -8,6 +8,33 @@
 - From this point, all tasks in this project use 3 parallel independent agents + 1 orchestrator (GPT-6 Luna).
 - Agents: deepseek-v4.1-flash (primary executor), claude-haiku-5-5 (independent executor), qwen3.8-flash (validation & optimization).
 
+## 2026-11-15 — Phase 05: Records, Dynamic Fields, Versions & Archive
+
+### Completed
+
+- Phase 05 completed after Phase 04 GitHub backup verification.
+- Created `app/services/records/fields.py` — all 14 field types, validation, encryption, masking.
+- Updated `app/bot/states/add_record.py` — full FSM with all stages.
+- Updated `app/bot/handlers/records.py` — full FSM, edit, tags, versions, lifecycle.
+- Updated `app/services/records/service.py` — create with all field types, tags, attachments, access.
+- Created `app/services/records/versions.py` — version snapshots, restore, optimistic locking.
+- Created `app/services/records/tags.py` — tag CRUD, add/remove from records.
+- Created `app/bot/handlers/archive.py` — archive management.
+- Updated `app/bot/main.py` — connected archive router.
+- Added tests: `test_record_fields.py`, `test_record_versions.py`, `test_record_tags.py`, `test_record_lifecycle.py`.
+- Fixed security bug: `is_user_active` now properly awaited in all handlers.
+- Ruff and pytest pass (289 tests); Docker build passed; image has no `.env`.
+
+### Verification
+
+- Commit: pending
+- Pushed to `main`: pending
+- Tag: pending
+
+### Phase status
+
+- Phase 05 implementation complete, pending commit/push/tag/verify.
+
 ## 2026-11-15 — Phase 04: Categories, Dynamic Menus & Navigation
 
 ### Completed

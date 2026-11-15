@@ -48,6 +48,13 @@ All notable changes to this project are documented here.
 - Phase 04: Role-based menus in `start.py`.
 - Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
 - Phase 04: Tests for categories, navigation, menus (96 tests).
+- Phase 05: `app/services/records/fields.py` — all 14 field types, validation, encryption, masking.
+- Phase 05: Full FSM for adding/editing records with all stages.
+- Phase 05: `app/services/records/versions.py` — version snapshots, restore, optimistic locking.
+- Phase 05: `app/services/records/tags.py` — tag CRUD, add/remove from records.
+- Phase 05: `app/bot/handlers/archive.py` — archive management.
+- Phase 05: Record move, restore, permanent delete, attachments.
+- Phase 05: Tests for record fields, versions, tags, lifecycle (289 tests).
 - Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
 
 ### Fixed

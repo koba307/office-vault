@@ -1,5 +1,6 @@
 from app.bot.handlers import (
     admin,
+    archive,
     categories,
     favorites,
     files,
@@ -14,6 +15,7 @@ from app.bot.handlers import (
 
 __all__ = [
     "admin",
+    "archive",
     "categories",
     "favorites",
     "files",

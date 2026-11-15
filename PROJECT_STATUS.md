@@ -2,8 +2,8 @@
 
 **Last updated:** 2026-11-15  
 **Current phase:** Phase 05 — Records, Dynamic Fields, Versions & Archive  
-**Phase status:** NOT_STARTED
-**Overall status:** Phase 01, 02, 03 and 04 verified; Phase 05 ready to begin.
+**Phase status:** IN_PROGRESS
+**Overall status:** Phase 01, 02, 03 and 04 verified; Phase 05 in progress.
 
 ## Current Phase
 
@@ -28,7 +28,7 @@
 
 | Phase | Name | Status |
 |---|---|---|
-| 05 | Records, Dynamic Fields, Versions & Archive | NOT_STARTED |
+| 05 | Records, Dynamic Fields, Versions & Archive | IN_PROGRESS |
 | 06 | Files & Storage | NOT_STARTED |
 | 07 | Search, Favorites & Recent | NOT_STARTED |
 | 08 | Import & Export | NOT_STARTED |
