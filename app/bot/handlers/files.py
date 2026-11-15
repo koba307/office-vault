@@ -89,8 +89,6 @@ async def finish_import(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
-        if not is_user_active(user) or user.role not in (RoleCode.SUPERADMIN, RoleCode.BOSS if False else user.role):
-            pass
         if not is_user_active(user):
             await message.answer("Нет доступа")
             await state.clear()
