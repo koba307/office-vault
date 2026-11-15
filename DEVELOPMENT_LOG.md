@@ -53,7 +53,7 @@
 
 - Phase 02 marked `GITHUB_BACKUP_VERIFIED`.
 - Implementation commit: `071f2bb` — `phase-02: harden migrations and seeds after audit`.
-- Remote commit: `cd95bee` (tag `v0.2.0-phase-02`).
+- Remote commit: `a0e4fa0` (tag `v0.2.0-phase-02`).
 - Phase 03 ready to begin.
 
 ## 2026-11-15 — Phase 01: Project Governance & Baseline

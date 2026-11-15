@@ -85,8 +85,8 @@ See `docs/GAP-ANALYSIS.md`.
 |---|---|
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
-| Latest verified phase commit | `cd95bee` |
-| Latest remote commit | `cd95bee` |
+| Latest verified phase commit | `a0e4fa0` |
+| Latest remote commit | `a0e4fa0` |
 | Latest verified tag | `v0.2.0-phase-02` |
 
 ## Known Issues
