@@ -122,11 +122,11 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
             )
             session.add(category)
             categories_by_code[code] = category
-        else:
-            category.name = name
-            category.category_type = "root"
-            category.sort_order = sort_order
-            category.status = "ACTIVE"
+        elif category.name != name or category.category_type != "root":
+            raise RuntimeError(
+                f"System category {code!r} must remain {name!r} with type 'root'; "
+                "seed will not rename or reclassify existing categories automatically."
+            )
     await session.flush()
 
     result = await session.execute(select(CategoryPermission))
@@ -138,8 +138,6 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
             session.add(
                 CategoryPermission(category_id=category.id, access_mode=AccessMode.GROUP)
             )
-        else:
-            permission.access_mode = AccessMode.GROUP
 
     result = await session.execute(select(Group))
     groups_by_code = {group.code: group for group in result.scalars().all()}
@@ -150,7 +148,11 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
             session.add(group)
             groups_by_code[code] = group
         else:
-            group.name = name
+            if group.name != name:
+                raise RuntimeError(
+                    f"System group {code!r} must retain its configured name {name!r}; "
+                    "seed will not rename it automatically."
+                )
             group.is_system = True
     await session.flush()
 
@@ -211,7 +213,6 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
     else:
         superadmin.role = RoleCode.SUPERADMIN
         superadmin.role_id = superadmin_role.id
-        superadmin.status = UserStatus.ACTIVE
         if not superadmin.display_name:
             superadmin.display_name = "SUPERADMIN"
     await session.flush()
@@ -221,7 +222,9 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
 async def _link_user_role(session: AsyncSession, user: User) -> None:
     result = await session.execute(select(Role).where(Role.code == user.role.value))
     role = result.scalar_one_or_none()
-    if role and user.role_id != role.id:
+    if role is None:
+        raise RuntimeError(f"Role {user.role.value!r} is missing from the system role catalog")
+    if user.role_id != role.id:
         user.role_id = role.id
 
 
@@ -231,7 +234,7 @@ async def seed_system_data(session: AsyncSession) -> None:
     await _seed_categories_and_groups(session)
 
     # Backfill role_id for existing users
-    result = await session.execute(select(User).where(User.role_id.is_(None)))
+    result = await session.execute(select(User))
     users = result.scalars().all()
     for user in users:
         await _link_user_role(session, user)

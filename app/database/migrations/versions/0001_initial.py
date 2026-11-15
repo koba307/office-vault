@@ -57,7 +57,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("is_system", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.UniqueConstraint("code", name="uq_groups_code"),
+        sa.UniqueConstraint("code"),
     )
 
     op.create_table(
@@ -66,10 +66,10 @@ def upgrade() -> None:
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("assigned_by", postgresql.UUID(as_uuid=True), nullable=True),
         sa.Column("assigned_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.ForeignKeyConstraint(["group_id"], ["groups.id"], name="fk_group_members_group"),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="fk_group_members_user"),
-        sa.ForeignKeyConstraint(["assigned_by"], ["users.id"], name="fk_group_members_assigned_by"),
-        sa.PrimaryKeyConstraint("group_id", "user_id", name="pk_group_members"),
+        sa.ForeignKeyConstraint(["group_id"], ["groups.id"]),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"]),
+        sa.ForeignKeyConstraint(["assigned_by"], ["users.id"]),
+        sa.PrimaryKeyConstraint("group_id", "user_id"),
     )
 
     op.create_table(
@@ -83,8 +83,8 @@ def upgrade() -> None:
         sa.Column("status", sa.String(32), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.ForeignKeyConstraint(["parent_id"], ["categories.id"], name="fk_categories_parent"),
-        sa.UniqueConstraint("code", name="uq_categories_code"),
+        sa.ForeignKeyConstraint(["parent_id"], ["categories.id"]),
+        sa.UniqueConstraint("code"),
     )
 
     op.create_table(
@@ -101,9 +101,9 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("version", sa.Integer(), nullable=False),
-        sa.ForeignKeyConstraint(["category_id"], ["categories.id"], name="fk_records_category"),
-        sa.ForeignKeyConstraint(["created_by"], ["users.id"], name="fk_records_created_by"),
-        sa.ForeignKeyConstraint(["updated_by"], ["users.id"], name="fk_records_updated_by"),
+        sa.ForeignKeyConstraint(["category_id"], ["categories.id"]),
+        sa.ForeignKeyConstraint(["created_by"], ["users.id"]),
+        sa.ForeignKeyConstraint(["updated_by"], ["users.id"]),
     )
 
     op.create_table(
@@ -133,7 +133,7 @@ def upgrade() -> None:
         sa.Column("result", sa.String(32), nullable=False),
         sa.Column("metadata", postgresql.JSONB(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
-        sa.ForeignKeyConstraint(["actor_user_id"], ["users.id"], name="fk_audit_actor"),
+        sa.ForeignKeyConstraint(["actor_user_id"], ["users.id"]),
     )
 
     op.create_table(
@@ -147,7 +147,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["record_id"], ["records.id"]
         ),
-        sa.PrimaryKeyConstraint("user_id", "record_id", name="pk_favorites"),
+        sa.PrimaryKeyConstraint("user_id", "record_id"),
     )
 
 

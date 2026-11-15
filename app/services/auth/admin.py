@@ -35,6 +35,8 @@ async def set_user_role(session: AsyncSession, user_id: UUID, role: RoleCode) ->
 async def set_user_status(session: AsyncSession, user_id: UUID, status: UserStatus) -> None:
     user = await get_user_by_id(session, user_id)
     if user:
+        if user.role == RoleCode.SUPERADMIN and status != UserStatus.ACTIVE:
+            raise ValueError("The configured SUPERADMIN cannot be blocked through the UI")
         user.status = status
         await session.commit()
 

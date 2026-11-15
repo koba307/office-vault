@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.database.models import Role, RoleCode, User, UserStatus
 from app.database.session import async_session
@@ -131,13 +132,28 @@ async def admin_user_detail(callback: CallbackQuery) -> None:
         f"Статус: {user.status.value}\n"
         f"Группы: {group_names}"
     )
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Сменить роль", callback_data=f"admin:role:{user.id}")],
-        [InlineKeyboardButton(text="Группы", callback_data=f"admin:groups:{user.id}")],
-        [InlineKeyboardButton(text="Заблокировать" if user.status == UserStatus.ACTIVE else "Разблокировать",
-                              callback_data=f"admin:toggle:{user.id}")],
-        [InlineKeyboardButton(text="⬅️ К списку", callback_data="admin:users")],
-    ])
+    buttons = []
+    if user.role != RoleCode.SUPERADMIN:
+        buttons.extend(
+            [
+                [InlineKeyboardButton(text="Сменить роль", callback_data=f"admin:role:{user.id}")],
+                [
+                    InlineKeyboardButton(
+                        text="Заблокировать"
+                        if user.status == UserStatus.ACTIVE
+                        else "Разблокировать",
+                        callback_data=f"admin:toggle:{user.id}",
+                    )
+                ],
+            ]
+        )
+    buttons.extend(
+        [
+            [InlineKeyboardButton(text="Группы", callback_data=f"admin:groups:{user.id}")],
+            [InlineKeyboardButton(text="⬅️ К списку", callback_data="admin:users")],
+        ]
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
     await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await callback.answer()
 
@@ -154,6 +170,9 @@ async def toggle_status(callback: CallbackQuery) -> None:
         if not user:
             await callback.answer()
             return
+        if user.role == RoleCode.SUPERADMIN:
+            await callback.answer("Настроенного SUPERADMIN нельзя блокировать", show_alert=True)
+            return
         new_status = UserStatus.BLOCKED if user.status == UserStatus.ACTIVE else UserStatus.ACTIVE
         await set_user_status(session, user.id, new_status)
     await callback.answer(f"Статус изменён на {new_status.value}")
@@ -163,6 +182,18 @@ async def toggle_status(callback: CallbackQuery) -> None:
 @router.callback_query(F.data.startswith("admin:role:"))
 async def change_role_menu(callback: CallbackQuery) -> None:
     uid = (callback.data or "").split(":")[-1]
+    async with async_session() as session:
+        me = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not _admin_only(me):
+            await callback.answer("Нет доступа", show_alert=True)
+            return
+        target = await get_user_by_id(session, UUID(uid))
+        if target is None:
+            await callback.answer("Пользователь не найден", show_alert=True)
+            return
+        if target.role == RoleCode.SUPERADMIN:
+            await callback.answer("Роль настроенного SUPERADMIN нельзя изменить", show_alert=True)
+            return
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="EMPLOYEE", callback_data=f"admin:setrole:{uid}:EMPLOYEE")],
         [InlineKeyboardButton(text="BOSS", callback_data=f"admin:setrole:{uid}:BOSS")],
@@ -260,6 +291,9 @@ async def add_user_id(message: Message, state: FSMContext) -> None:
     except ValueError:
         await message.answer("Нужно число. Попробуйте ещё раз:")
         return
+    if tid <= 0:
+        await message.answer("Telegram ID должен быть положительным числом. Попробуйте ещё раз:")
+        return
     await state.update_data(telegram_id=tid)
     await state.set_state(AddUser.waiting_name)
     await message.answer("Введите отображаемое имя:")
@@ -284,10 +318,20 @@ async def finish_add_user(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Нельзя назначить эту роль через добавление пользователя", show_alert=True)
         return
     data = await state.get_data()
+    telegram_id = data.get("telegram_id")
+    if not isinstance(telegram_id, int) or telegram_id <= 0:
+        await state.clear()
+        await callback.answer("Состояние добавления пользователя устарело. Начните заново.", show_alert=True)
+        return
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
         if not _admin_only(me):
             await callback.answer()
+            return
+        existing = await session.execute(select(User.id).where(User.telegram_id == telegram_id))
+        if existing.scalar_one_or_none():
+            await state.clear()
+            await callback.answer("Пользователь с таким Telegram ID уже зарегистрирован", show_alert=True)
             return
         role_result = await session.execute(select(Role).where(Role.code == role_name))
         role = role_result.scalar_one_or_none()
@@ -295,14 +339,20 @@ async def finish_add_user(callback: CallbackQuery, state: FSMContext) -> None:
             await callback.answer("Роль не найдена", show_alert=True)
             return
         user = User(
-            telegram_id=data["telegram_id"],
+            telegram_id=telegram_id,
             display_name=data.get("display_name"),
             role=RoleCode(role_name),
             role_id=role.id,
             status=UserStatus.ACTIVE,
         )
         session.add(user)
-        await session.commit()
+        try:
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            await state.clear()
+            await callback.answer("Пользователь с таким Telegram ID уже зарегистрирован", show_alert=True)
+            return
     await state.clear()
     await callback.message.answer(f"✅ Пользователь {data.get('display_name')} добавлен.")
     await callback.answer()
