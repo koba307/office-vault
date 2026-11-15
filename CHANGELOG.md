@@ -48,6 +48,7 @@ All notable changes to this project are documented here.
 - Phase 04: Role-based menus in `start.py`.
 - Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
 - Phase 04: Tests for categories, navigation, menus (96 tests).
+- Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
 
 ### Fixed
 

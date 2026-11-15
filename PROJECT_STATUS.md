@@ -1,9 +1,9 @@
 # PROJECT STATUS — OFFICE VAULT / MillionersBot
 
 **Last updated:** 2026-11-15  
-**Current phase:** Phase 04 — Categories, Dynamic Menus & Navigation  
-**Phase status:** IN_PROGRESS
-**Overall status:** Phase 01, 02 and 03 verified; Phase 04 in progress.
+**Current phase:** Phase 05 — Records, Dynamic Fields, Versions & Archive  
+**Phase status:** NOT_STARTED
+**Overall status:** Phase 01, 02, 03 and 04 verified; Phase 05 ready to begin.
 
 ## Current Phase
 
@@ -22,13 +22,12 @@
 | 01 | Project Governance & Baseline | GITHUB_BACKUP_VERIFIED |
 | 02 | Database Model & Alembic Migrations | GITHUB_BACKUP_VERIFIED |
 | 03 | Authentication, Roles, Groups & Permission Service | GITHUB_BACKUP_VERIFIED |
-| 04 | Categories, Dynamic Menus & Navigation | IN_PROGRESS |
+| 04 | Categories, Dynamic Menus & Navigation | GITHUB_BACKUP_VERIFIED |
 
 ## Remaining Phases
 
 | Phase | Name | Status |
 |---|---|---|
-| 04 | Categories, Dynamic Menus & Navigation | IN_PROGRESS |
 | 05 | Records, Dynamic Fields, Versions & Archive | NOT_STARTED |
 | 06 | Files & Storage | NOT_STARTED |
 | 07 | Search, Favorites & Recent | NOT_STARTED |
@@ -86,9 +85,9 @@ See `docs/GAP-ANALYSIS.md`.
 |---|---|
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
-| Latest verified phase commit | `fe7aab0` |
-| Latest remote commit | `fe7aab0` |
-| Latest verified tag | `v0.3.0-phase-03` |
+| Latest verified phase commit | `71fe89f` |
+| Latest remote commit | `71fe89f` |
+| Latest verified tag | `v0.4.0-phase-04` |
 
 ## Known Issues
 

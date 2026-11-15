@@ -10,9 +10,9 @@
 
 ## 2026-11-15 — Phase 04: Categories, Dynamic Menus & Navigation
 
-### Started
+### Completed
 
-- Phase 04 started after Phase 03 GitHub backup verification.
+- Phase 04 completed after Phase 03 GitHub backup verification.
 - Created `app/services/categories/service.py` — category CRUD, subcategories, archive, delete.
 - Created `app/bot/handlers/categories.py` — category management UI.
 - Created `app/bot/keyboards/pagination.py` — pagination, confirm, cancel keyboards.
@@ -26,10 +26,16 @@
 - Fixed security bug: `is_user_active` now properly awaited in all handlers.
 - Ruff and pytest pass (96 tests); Docker build passed; image has no `.env`.
 
-### Current phase status
+### Verification
 
-- Phase 04 is `IN_PROGRESS`.
-- Implementation complete, pending final review and GitHub backup.
+- Commit: `71fe89f` — `phase-04: implement dynamic menus, categories, navigation and pagination`.
+- Pushed to `main`: remote commit matches `71fe89f`.
+- Tag `v0.4.0-phase-04` created and pushed, points to `71fe89f`.
+
+### Phase status
+
+- Phase 04 marked `GITHUB_BACKUP_VERIFIED`.
+- Phase 05 ready to begin.
 
 ## 2026-11-15 — Phase 03: Authentication, Roles, Groups & Permission Service
 
