@@ -85,14 +85,14 @@ See `docs/GAP-ANALYSIS.md`.
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
 | Latest verified phase commit | `1a5cfc3` |
-| Latest local commit | `36ca3c8` |
+| Phase 02 implementation commit | `36ca3c8` (local only) |
 | Latest remote commit | `df4504f` |
 | Latest verified tag | `v0.1.0-phase-01` |
 
 ## Known Issues
 
 - TZ v2.0 has many unimplemented features (see gap analysis).
-- Phase 02 commit `36ca3c8` is local but cannot be pushed until GitHub authentication is configured securely.
+- Phase 02 implementation and status commits are local but cannot be pushed until GitHub authentication is configured securely.
 - Permission model does not support record/file-level access.
 - No full test suite.
 - No backup/restore for PostgreSQL/MinIO.
