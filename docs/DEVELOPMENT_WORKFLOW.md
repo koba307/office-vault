@@ -1,5 +1,11 @@
 # DEVELOPMENT WORKFLOW INSTRUCTIONS: STRICT PHASE-BY-PHASE IMPLEMENTATION WITH MANDATORY GITHUB BACKUPS
 
+## 0. ЯЗЫК ОБЩЕНИЯ
+
+Все объяснения, отчёты о выполненных фазах, комментарии к изменениям, описание планов и любые ответы пользователю должны быть на русском языке.
+
+Код, имена переменных, идентификаторы, commit messages, названия файлов и технические термины могут оставаться на английском языке, если это соответствует принятым в проекте соглашениям.
+
 ## 1. CORE DEVELOPMENT PRINCIPLE
 
 You must develop the project strictly in sequential, independently verifiable stages.

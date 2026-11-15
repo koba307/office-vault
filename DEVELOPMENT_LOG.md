@@ -33,6 +33,13 @@
 
 - Begin Phase 02 (database model and Alembic migrations).
 
+## 2026-11-15 — Documentation update
+
+### Actions
+
+- Added a mandatory Russian-language communication rule to `docs/DEVELOPMENT_WORKFLOW.md` (section 0).
+- All explanations, phase reports, plans, and user-facing responses must be in Russian.
+
 ## 2026-11-15 — Pre-phase baseline work
 
 ### Actions
