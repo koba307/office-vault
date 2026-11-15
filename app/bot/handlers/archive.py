@@ -16,10 +16,17 @@ from sqlalchemy import func, select
 
 from app.bot.handlers.menu import PAGE_SIZE, STALE_TEXT, breadcrumbs, category_emoji
 from app.bot.keyboards.pagination import confirm_keyboard, pagination_keyboard
-from app.database.models import Category, Record, RecordType, User
+from app.database.models import Category, File, Record, RecordType, User
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active, log_audit
-from app.services.permissions import PermissionService
+from app.services.files.service import (
+    FileError,
+    list_deleted_files,
+    purge_file,
+    restore_file,
+)
+from app.services.permissions import PermissionDenied, PermissionService
+from app.services.permissions.service import DENY_MESSAGES
 from app.services.records.service import (
     PERMANENTLY_DELETABLE_STATUSES,
     RecordError,
@@ -479,12 +486,267 @@ async def archive_purge_confirm(callback: CallbackQuery) -> None:
     )
 
 
+# ---------------------------------------------------------------------------
+# Архив файлов (Phase 06): просмотр, восстановление и очистка удалённых файлов
+# ---------------------------------------------------------------------------
+
+FILE_ARCHIVE_LIMIT = 20
+
+
+def _file_human_size(size: int | None) -> str:
+    value = size or 0
+    if value < 1024:
+        return f"{value} Б"
+    if value < 1024**2:
+        return f"{value / 1024:.1f} КБ"
+    return f"{value / 1024**2:.1f} МБ"
+
+
+def _file_id_from_callback(data: str | None) -> UUID | None:
+    try:
+        return UUID((data or "").split(":")[-1])
+    except ValueError:
+        return None
+
+
+def build_file_archive_rows(
+    files: list[File],
+    *,
+    can_restore: bool,
+    can_purge: bool,
+) -> list[list[InlineKeyboardButton]]:
+    """Карточки удалённых файлов: просмотр, восстановление, окончательная очистка."""
+    rows: list[list[InlineKeyboardButton]] = []
+    for file in files:
+        deleted_at = file.deleted_at.strftime("%d.%m.%Y") if file.deleted_at else "—"
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"📄 {file.original_name[:36]} · {deleted_at}",
+                    callback_data=f"archive:file:{file.id}",
+                )
+            ]
+        )
+        actions: list[InlineKeyboardButton] = []
+        if can_restore:
+            actions.append(
+                InlineKeyboardButton(
+                    text="♻️ Восстановить",
+                    callback_data=f"archive:file_restore:{file.id}",
+                )
+            )
+        if can_purge:
+            actions.append(
+                InlineKeyboardButton(
+                    text="☠️ Очистить",
+                    callback_data=f"archive:file_purge:{file.id}",
+                )
+            )
+        if actions:
+            rows.append(actions)
+    return rows
+
+
+def file_archive_view_text(file: File, author_name: str) -> str:
+    """HTML-текст карточки удалённого файла (просмотр архивного файла)."""
+    deleted_at = file.deleted_at.strftime("%d.%m.%Y %H:%M UTC") if file.deleted_at else "—"
+    return (
+        f"🗄 <b>Файл в архиве (корзине)</b>\n\n"
+        f"Имя: {html.escape(file.original_name)}\n"
+        f"Размер: {_file_human_size(file.size)}\n"
+        f"MIME: {html.escape(file.mime_type)}\n"
+        f"SHA-256: <code>{html.escape(file.sha256 or '—')}</code>\n"
+        f"Загружен: {file.created_at:%d.%m.%Y %H:%M} UTC\n"
+        f"Удалён: {deleted_at}\n"
+        f"Автор: {html.escape(author_name)}\n"
+        f"Проверка: {html.escape(str(getattr(file.scan_status, 'value', file.scan_status)))}"
+    )
+
+
+async def _file_archive_access(callback: CallbackQuery, session) -> User | None:
+    """Экран архива файлов доступен с системным правом ARCHIVE (Default Deny)."""
+    user = await get_user_by_telegram_id(session, callback.from_user.id)
+    if not await is_user_active(user):
+        await callback.answer("Нет доступа", show_alert=True)
+        return None
+    if not await PermissionService.can(user, "ARCHIVE", None, None, session):
+        await callback.answer("Недостаточно прав", show_alert=True)
+        return None
+    return user
+
+
+def _file_archive_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="🗃 К записям архива", callback_data="archive:l:a:ALL:ALL:0"
+                )
+            ],
+            [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
+        ]
+    )
+
+
+@router.callback_query(F.data == "archive:files")
+async def archive_files(callback: CallbackQuery) -> None:
+    """Список файлов в корзине: просмотр, восстановление, окончательная очистка."""
+    async with async_session() as session:
+        user = await _file_archive_access(callback, session)
+        if user is None:
+            return
+        files, total = await list_deleted_files(session, limit=FILE_ARCHIVE_LIMIT)
+        can_restore = await PermissionService.can(user, "RESTORE", None, None, session)
+        can_purge = await PermissionService.can(user, "DELETE", None, None, session)
+
+    lines = [breadcrumbs("🗄 Архив файлов"), "", f"В корзине: {total}."]
+    if not files:
+        lines.append("Здесь пусто.")
+    await callback.message.edit_text(
+        "\n".join(lines),
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[
+                *build_file_archive_rows(files, can_restore=can_restore, can_purge=can_purge),
+                *_file_archive_keyboard().inline_keyboard,
+            ]
+        ),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("archive:file_restore:"))
+async def archive_file_restore(callback: CallbackQuery) -> None:
+    """Восстановление файла из корзины (право RESTORE проверяет сервис)."""
+    file_id = _file_id_from_callback(callback.data)
+    if file_id is None:
+        await callback.answer(STALE_TEXT, show_alert=True)
+        return
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not await is_user_active(user):
+            await callback.answer("Нет доступа", show_alert=True)
+            return
+        try:
+            file = await restore_file(session, user=user, file_id=file_id)
+        except PermissionDenied as e:
+            await callback.answer(DENY_MESSAGES.get(e.reason, "Нет доступа"), show_alert=True)
+            return
+        except FileError as e:
+            await callback.answer(str(e), show_alert=True)
+            return
+        await log_audit(session, user.id, "RESTORE_FILE", "File", str(file_id))
+
+    await callback.answer("Файл восстановлен")
+    await callback.message.edit_text(
+        f"♻️ Файл «{html.escape(file.original_name)}» восстановлен в рабочий список.",
+        reply_markup=_file_archive_keyboard(),
+        parse_mode="HTML",
+    )
+
+
+@router.callback_query(F.data.startswith("archive:file_purge_yes:"))
+async def archive_file_purge_confirm(callback: CallbackQuery) -> None:
+    """Окончательная очистка файла после подтверждения: объект из бакета и строки реестра."""
+    file_id = _file_id_from_callback(callback.data)
+    if file_id is None:
+        await callback.answer(STALE_TEXT, show_alert=True)
+        return
+    async with async_session() as session:
+        user = await _guard_user(session, callback.from_user.id, "DELETE", callback)
+        if user is None:
+            return
+        try:
+            await purge_file(session, user=user, file_id=file_id)
+        except PermissionDenied as e:
+            await callback.answer(DENY_MESSAGES.get(e.reason, "Нет доступа"), show_alert=True)
+            return
+        except FileError as e:
+            await callback.answer(str(e), show_alert=True)
+            return
+        await log_audit(session, user.id, "PURGE_FILE", "File", str(file_id))
+
+    await callback.answer("Удалено окончательно")
+    await callback.message.edit_text(
+        "☠️ Файл удалён окончательно: объекты хранилища и записи реестра стёрты.",
+        reply_markup=_file_archive_keyboard(),
+    )
+
+
+@router.callback_query(F.data.startswith("archive:file_purge:"))
+async def archive_file_purge_ask(callback: CallbackQuery) -> None:
+    """Запрос подтверждения окончательной очистки файла."""
+    file_id = _file_id_from_callback(callback.data)
+    if file_id is None:
+        await callback.answer(STALE_TEXT, show_alert=True)
+        return
+    async with async_session() as session:
+        if await _guard_user(session, callback.from_user.id, "DELETE", callback) is None:
+            return
+        file = await session.get(File, file_id)
+        if file is None:
+            await callback.answer("Файл не найден", show_alert=True)
+            return
+        if file.deleted_at is None:
+            await callback.answer("Сначала удалите файл в корзину.", show_alert=True)
+            return
+        name = html.escape(file.original_name)
+
+    await callback.message.edit_text(
+        f"☠️ <b>Очистить файл «{name}» окончательно?</b>\n\n"
+        "Объекты в хранилище и записи реестра будут стёрты безвозвратно. "
+        "Восстановление останется возможным только из резервных копий.",
+        reply_markup=confirm_keyboard(f"archive:file_purge_yes:{file_id}", f"archive:file:{file_id}"),
+        parse_mode="HTML",
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("archive:file:"))
+async def archive_file_view(callback: CallbackQuery) -> None:
+    """Просмотр метаданных архивного (удалённого) файла."""
+    file_id = _file_id_from_callback(callback.data)
+    if file_id is None:
+        await callback.answer(STALE_TEXT, show_alert=True)
+        return
+    async with async_session() as session:
+        user = await _file_archive_access(callback, session)
+        if user is None:
+            return
+        file = await session.get(File, file_id)
+        if file is None or file.deleted_at is None:
+            await callback.answer("Архивный файл не найден", show_alert=True)
+            return
+        author = await session.get(User, file.uploaded_by)
+        if author is None:
+            author_name = "неизвестно"
+        elif author.display_name:
+            author_name = author.display_name
+        elif author.username:
+            author_name = f"@{author.username}"
+        else:
+            author_name = str(author.telegram_id)
+        text = file_archive_view_text(file, author_name)
+        can_restore = await PermissionService.can(user, "RESTORE", None, None, session)
+        can_purge = await PermissionService.can(user, "DELETE", None, None, session)
+
+    rows = build_file_archive_rows([file], can_restore=can_restore, can_purge=can_purge)
+    rows += _file_archive_keyboard().inline_keyboard
+    await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+    await callback.answer()
+
+
 __all__ = [
     "ALL_FILTER",
     "CALLBACK_LIMIT",
+    "FILE_ARCHIVE_LIMIT",
     "STATUS_CODES",
     "STATUS_TITLES",
     "after_action_keyboard",
+    "archive_file_purge_ask",
+    "archive_file_purge_confirm",
+    "archive_file_restore",
+    "archive_file_view",
+    "archive_files",
     "archive_filter_category",
     "archive_filter_type",
     "archive_from_menu",
@@ -494,6 +756,8 @@ __all__ = [
     "archive_purge_confirm",
     "archive_restore",
     "build_archive_keyboard",
+    "build_file_archive_rows",
+    "file_archive_view_text",
     "parse_archive_callback",
     "router",
 ]

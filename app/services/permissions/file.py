@@ -3,9 +3,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import File, PermissionCode, RecordFile, ScanStatus, User
-from app.services.permissions.category import category_denial_reason, resolve_category_id
-from app.services.permissions.context import UserContext, as_uuid, load_access_context
+from app.database.models import File, PermissionCode, RecordFile, ScanStatus
+from app.services.permissions.context import UserContext
 from app.services.permissions.errors import DenyReason
 from app.services.permissions.record import record_denial_reason
 
@@ -47,37 +46,3 @@ async def file_denial_reason(
         if file.scan_status != ScanStatus.CLEAN:
             return DenyReason.FILE_NOT_CLEAN
     return None
-
-
-async def check_file_access(user: User | None, file_id: UUID | str, session: AsyncSession) -> bool:
-    ctx, reason = await load_access_context(user, session)
-    if reason is not None or ctx is None:
-        return False
-    resolved = as_uuid(file_id)
-    if resolved is None:
-        return False
-    return await file_denial_reason(ctx, resolved, PermissionCode.VIEW, session) is None
-
-
-async def check_file_download(
-    user: User | None, file_id: UUID | str, session: AsyncSession
-) -> bool:
-    ctx, reason = await load_access_context(user, session)
-    if reason is not None or ctx is None:
-        return False
-    resolved = as_uuid(file_id)
-    if resolved is None:
-        return False
-    return await file_denial_reason(ctx, resolved, PermissionCode.DOWNLOAD, session) is None
-
-
-async def check_file_upload(user: User | None, category_code: str, session: AsyncSession) -> bool:
-    ctx, reason = await load_access_context(user, session)
-    if reason is not None or ctx is None:
-        return False
-    if not ctx.has_permission(PermissionCode.UPLOAD):
-        return False
-    category_id = await resolve_category_id(session, category_code)
-    if category_id is None:
-        return False
-    return await category_denial_reason(ctx, category_id, PermissionCode.UPLOAD, session) is None

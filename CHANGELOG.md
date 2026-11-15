@@ -55,6 +55,15 @@ All notable changes to this project are documented here.
 - Phase 05: `app/bot/handlers/archive.py` — archive management.
 - Phase 05: Record move, restore, permanent delete, attachments.
 - Phase 05: Tests for record fields, versions, tags, lifecycle (289 tests).
+- Phase 06: `app/services/files/metadata.py` — SHA-256, MIME detection, extension validation, filename sanitization, size check.
+- Phase 06: `app/services/files/quarantine.py` — quarantine, release, is_quarantined.
+- Phase 06: `app/services/files/security.py` — ZIP bomb protection, path traversal, magic bytes validation.
+- Phase 06: `app/services/files/versions.py` — file versions, restore, replace.
+- Phase 06: `app/services/files/access.py` — file access checks, download, upload, audit logging.
+- Phase 06: Updated `app/services/files/service.py` — full upload cycle with security, quarantine, ClamAV, S3, metadata.
+- Phase 06: Updated `app/bot/handlers/files.py` — secure download, metadata card, delete with confirmation, restore.
+- Phase 06: Updated `app/bot/handlers/archive.py` — file archive management.
+- Phase 06: Tests for file metadata, quarantine, versions, access, security, scan (505 tests).
 - Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
 
 ### Fixed

@@ -8,6 +8,32 @@
 - From this point, all tasks in this project use 3 parallel independent agents + 1 orchestrator (GPT-6 Luna).
 - Agents: deepseek-v4.1-flash (primary executor), claude-haiku-5-5 (independent executor), qwen3.8-flash (validation & optimization).
 
+## 2026-11-15 — Phase 06: Files & Storage
+
+### Completed
+
+- Phase 06 completed after Phase 05 GitHub backup verification.
+- Created `app/services/files/metadata.py` — SHA-256, MIME detection, extension validation, filename sanitization, size check.
+- Created `app/services/files/quarantine.py` — quarantine, release, is_quarantined.
+- Created `app/services/files/security.py` — ZIP bomb protection, path traversal, magic bytes validation.
+- Created `app/services/files/versions.py` — file versions, restore, replace.
+- Created `app/services/files/access.py` — file access checks, download, upload, audit logging.
+- Updated `app/services/files/service.py` — full upload cycle with security, quarantine, ClamAV, S3, metadata.
+- Updated `app/bot/handlers/files.py` — secure download, metadata card, delete with confirmation, restore.
+- Updated `app/bot/handlers/archive.py` — file archive management.
+- Added tests: `test_file_metadata.py`, `test_file_quarantine.py`, `test_file_versions.py`, `test_file_access.py`, `test_file_security.py`, `test_file_scan.py`.
+- Ruff and pytest pass (505 tests); Docker build passed; image has no `.env`.
+
+### Verification
+
+- Commit: pending
+- Pushed to `main`: pending
+- Tag: pending
+
+### Phase status
+
+- Phase 06 implementation complete, pending commit/push/tag/verify.
+
 ## 2026-11-15 — Phase 05: Records, Dynamic Fields, Versions & Archive
 
 ### Completed

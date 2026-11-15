@@ -32,5 +32,10 @@ class Settings(BaseSettings):
     clamav_host: str | None = None
     clamav_port: int = 3310
 
+    # Ограничения файлов (Phase 06); None — использовать дефолты security-модуля
+    max_upload_bytes: int | None = None
+    zip_max_ratio: float | None = None
+    zip_max_uncompressed: int | None = None
+
 
 settings = Settings()

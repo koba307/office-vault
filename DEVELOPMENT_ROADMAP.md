@@ -320,7 +320,7 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 ## Phase 06 — Files & Storage
 
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 
 ### Objectives
 
