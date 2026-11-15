@@ -86,7 +86,7 @@ See `docs/GAP-ANALYSIS.md`.
 | Branch | `main` |
 | Latest verified phase commit | `1a5cfc3` |
 | Phase 02 implementation commit | `071f2bb` (local only) |
-| Phase 02 status commit | `ad75d12` (local only, unpushed) |
+| Phase 02 status commits | `9aa7bc0`, `30d9ddf`, `071f2bb`, `8d8376f`, `ad75d12`, `8770d2f` (local only, unpushed) |
 | Latest remote commit | `df4504f` |
 | Latest verified tag | `v0.1.0-phase-01` |
 
