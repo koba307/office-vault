@@ -55,7 +55,21 @@ ARQ worker (app/workers)
 база автоматически получает baseline stamp только после проверки точного набора
 таблиц и колонок.
 
-## 3. Target Architecture (TZ v2.0)
+## 3. Current Services (Phase 03)
+
+- `app/services/auth/` — users, groups, permissions, admin operations.
+- `app/services/permissions/` — PermissionService, category/record/file checks, cache, invalidation, invites.
+- `app/services/records/` — record CRUD, archive, delete, update.
+- `app/services/files/` — S3 upload/download, optional ClamAV.
+- `app/services/import_export/` — CSV import/export.
+- `app/services/search/` — basic search.
+- `app/services/favorites/` — favorites.
+- `app/services/recent/` — recent records.
+- `app/core/permissions.py` — pure permission logic.
+- `app/core/security.py` — HMAC callback tokens, invite token generation/hashing.
+- `app/bot/middlewares/` — auth, permissions, throttling, audit.
+
+## 4. Target Architecture (TZ v2.0)
 
 ```
 Telegram User
@@ -86,7 +100,7 @@ PostgreSQL + Redis + S3/MinIO + ClamAV
 ARQ Workers (import, scan, backup, cleanup, notifications)
 ```
 
-## 4. Design Rules
+## 5. Design Rules
 
 - Telegram is the only user/admin interface.
 - No web panel or browser frontend.
@@ -98,7 +112,7 @@ ARQ Workers (import, scan, backup, cleanup, notifications)
 - Every sensitive action is audited.
 - One phase at a time; each phase is tested, documented, committed, tagged.
 
-## 5. Infrastructure
+## 6. Infrastructure
 
 - Docker Compose: `bot`, `worker`, `postgres`, `redis`, `minio` (RustFS-compatible S3), `clamav`.
 - PostgreSQL 16.
@@ -108,7 +122,7 @@ ARQ Workers (import, scan, backup, cleanup, notifications)
 - ARQ for background jobs.
 - Python dependencies are pinned in `requirements.lock`; Docker builds install from that lock.
 
-## 6. Security Boundaries
+## 7. Security Boundaries
 
 - PostgreSQL, Redis, and S3 are not exposed publicly.
 - Only bot long-polling requires outbound internet.

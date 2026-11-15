@@ -145,7 +145,7 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 ## Phase 03 — Authentication, Roles, Groups & Permission Service
 
-**Status:** NOT_STARTED
+**Status:** IN_PROGRESS
 
 ### Objectives
 

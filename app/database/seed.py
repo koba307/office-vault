@@ -156,6 +156,7 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
             group.is_system = True
     await session.flush()
 
+    # Grant VIEW to each group on its own category
     view_permission = next(
         permission for permission, _ in PERMISSIONS if permission == PermissionCode.VIEW
     )
@@ -194,6 +195,43 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
                 )
             )
             existing_category_group_permissions.add(permission_key)
+
+    # Grant BOSS access to all 4 categories via all groups (Mixed Access)
+    boss_permission_codes = [
+        PermissionCode.VIEW,
+        PermissionCode.CREATE,
+        PermissionCode.EDIT,
+        PermissionCode.DELETE,
+        PermissionCode.ARCHIVE,
+        PermissionCode.RESTORE,
+        PermissionCode.DOWNLOAD,
+        PermissionCode.UPLOAD,
+        PermissionCode.EXPORT,
+        PermissionCode.IMPORT,
+        PermissionCode.MANAGE_ACCESS,
+        PermissionCode.MANAGE_CATEGORIES,
+        PermissionCode.VIEW_AUDIT,
+    ]
+    for category_code, _, _ in CATEGORIES:
+        category = categories_by_code[category_code]
+        for group_code, _ in GROUPS:
+            group = groups_by_code[group_code]
+            for perm_code in boss_permission_codes:
+                perm_result = await session.execute(
+                    select(Permission).where(Permission.code == perm_code.value)
+                )
+                perm = perm_result.scalar_one()
+                permission_key = (category.id, group.id, perm.id)
+                if permission_key not in existing_category_group_permissions:
+                    session.add(
+                        CategoryGroupPermission(
+                            category_id=category.id,
+                            group_id=group.id,
+                            permission_id=perm.id,
+                            granted=True,
+                        )
+                    )
+                    existing_category_group_permissions.add(permission_key)
 
     result = await session.execute(select(Role).where(Role.code == RoleCode.SUPERADMIN.value))
     superadmin_role = result.scalar_one()

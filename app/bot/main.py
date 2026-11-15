@@ -38,6 +38,31 @@ async def main() -> None:
         search,
         start,
     )
+    from app.bot.middlewares.audit import AuditMiddleware
+    from app.bot.middlewares.auth import AuthMiddleware
+    from app.bot.middlewares.permissions import PermissionMiddleware
+    from app.bot.middlewares.throttling import ThrottlingMiddleware
+
+    # Middleware stack: throttling → auth → permissions → audit
+    for router in (
+        start.router,
+        menu.router,
+        records.router,
+        search.router,
+        favorites.router,
+        admin.router,
+        files.router,
+        recent.router,
+        profile.router,
+    ):
+        router.message.middleware(ThrottlingMiddleware())
+        router.message.middleware(AuthMiddleware())
+        router.message.middleware(PermissionMiddleware())
+        router.message.middleware(AuditMiddleware())
+        router.callback_query.middleware(ThrottlingMiddleware())
+        router.callback_query.middleware(AuthMiddleware())
+        router.callback_query.middleware(PermissionMiddleware())
+        router.callback_query.middleware(AuditMiddleware())
 
     dp.include_router(start.router)
     dp.include_router(menu.router)

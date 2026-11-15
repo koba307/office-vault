@@ -30,6 +30,15 @@ All notable changes to this project are documented here.
 - Pinned Python dependency set in `requirements.lock`; Docker now installs from the lock file.
 - `.dockerignore` to keep environment files and local artifacts out of newly built images.
 - Database schema, migration-runner and dependency-lock tests.
+- Phase 03: `app/core/permissions.py` — pure permission logic (decide_access, check_role_permission, matrix).
+- Phase 03: `app/core/security.py` — HMAC callback tokens, invite token generation/hashing.
+- Phase 03: `app/services/permissions/` package (service, category, record, file, cache, invalidation, invites, context, versions, errors).
+- Phase 03: `app/bot/middlewares/` (auth, permissions, throttling, audit).
+- Phase 03: Middleware registration in `main.py`.
+- Phase 03: `Invite` model and migration `0008_access_and_invites`.
+- Phase 03: Mixed Access grants in seed (BOSS access to all categories).
+- Phase 03: Role-based category visibility in `menu.py` and `start.py`.
+- Phase 03: Tests for permission matrix, callback schema, invite tokens.
 
 ### Fixed
 
@@ -39,6 +48,8 @@ All notable changes to this project are documented here.
 - Ruff lint errors.
 - Existing users receive their role foreign key during upgrade; new users and role changes keep `role` and `role_id` synchronized.
 - SUPERADMIN cannot be assigned through the ordinary user/role UI.
+- SUPERADMIN cannot be blocked through the ordinary UI.
+- Seed no longer resets category/group status or SUPERADMIN status on restart.
 
 ## [0.1.0] — 2026-11-14
 

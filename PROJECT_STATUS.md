@@ -2,8 +2,8 @@
 
 **Last updated:** 2026-11-15  
 **Current phase:** Phase 03 — Authentication, Roles, Groups & Permission Service  
-**Phase status:** NOT_STARTED
-**Overall status:** Phase 01 and Phase 02 verified; Phase 03 ready to begin.
+**Phase status:** IN_PROGRESS
+**Overall status:** Phase 01 and Phase 02 verified; Phase 03 started.
 
 ## Current Phase
 
@@ -92,18 +92,16 @@ See `docs/GAP-ANALYSIS.md`.
 ## Known Issues
 
 - TZ v2.0 has many unimplemented features (see gap analysis).
-- Permission model does not support record/file-level access.
+- Permission model does not support record/file-level access (Phase 03 in progress).
 - No full test suite.
 - No backup/restore for PostgreSQL/MinIO.
-- BOSS does not automatically see all working categories.
-- `/start` does not show employee/boss menu.
 - Secrets are sent in ordinary Telegram messages.
 - MinIO image unavailable in this environment; RustFS is used as S3-compatible replacement.
-- Previously disclosed bot/GitHub/SSH credentials must be rotated. New image builds exclude `.env`, but running containers were not recreated during Phase 02.
+- Previously disclosed bot/GitHub/SSH credentials must be rotated. New image builds exclude `.env`, but running containers were not recreated.
 
 
 ## Next Planned Actions
 
-1. Phase 02 verified — ready for Phase 03.
+1. Phase 03 in progress: implement Mixed Access, middleware, record/file permissions.
 2. Rotate previously disclosed credentials and recreate containers via planned deployment.
-3. Begin Phase 03: Authentication, Roles, Groups & Permission Service.
+3. Complete Phase 03: tests, docs, commit, push, tag, verify.

@@ -1,30 +1,46 @@
 from aiogram import Router
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
-from app.database.models import RoleCode
+from app.database.models import Category, RoleCode
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id
+from app.services.permissions import PermissionService
 
 router = Router()
 
 
-def get_main_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
-    buttons = [
-        [InlineKeyboardButton(text="❄️ Холодка", callback_data="menu:category:holodka")],
-        [InlineKeyboardButton(text="2️⃣ 2й Этап", callback_data="menu:category:second_stage")],
-        [InlineKeyboardButton(text="🎯 Клоузеры", callback_data="menu:category:closers")],
-        [InlineKeyboardButton(text="🌐 Общее", callback_data="menu:category:general")],
-        [InlineKeyboardButton(text="🔎 Поиск", callback_data="search:start")],
-        [InlineKeyboardButton(text="📁 Загрузить файл", callback_data="files:upload")],
-        [InlineKeyboardButton(text="📤 Экспорт CSV", callback_data="export:csv")],
-        [InlineKeyboardButton(text="📥 Импорт CSV", callback_data="import:csv")],
-        [InlineKeyboardButton(text="⭐ Избранное", callback_data="favorites:list")],
-        [InlineKeyboardButton(text="🕘 Недавнее", callback_data="recent:list")],
-        [InlineKeyboardButton(text="👤 Мой профиль", callback_data="profile:view")],
-    ]
+async def get_main_menu_keyboard(user=None, is_admin: bool = False) -> InlineKeyboardMarkup:
+    from sqlalchemy import select
+
+    buttons = []
+
+    # Показываем только доступные категории
+    if user is not None:
+        async with async_session() as session:
+            result = await session.execute(
+                select(Category).where(Category.status == "ACTIVE", Category.parent_id.is_(None))
+            )
+            categories = result.scalars().all()
+            for cat in categories:
+                if await PermissionService.can(user, "VIEW", "category", cat.id, session):
+                    emoji = {"holodka": "❄️", "second_stage": "2️⃣", "closers": "🎯", "general": "🌐"}.get(
+                        cat.code, "📁"
+                    )
+                    buttons.append(
+                        [InlineKeyboardButton(text=f"{emoji} {cat.name}", callback_data=f"menu:category:{cat.code}")]
+                    )
+
+    buttons.append([InlineKeyboardButton(text="🔎 Поиск", callback_data="search:start")])
+    buttons.append([InlineKeyboardButton(text="⭐ Избранное", callback_data="favorites:list")])
+    buttons.append([InlineKeyboardButton(text="🕘 Недавнее", callback_data="recent:list")])
+    buttons.append([InlineKeyboardButton(text="👤 Мой профиль", callback_data="profile:view")])
+
     if is_admin:
         buttons.append([InlineKeyboardButton(text="👥 Пользователи", callback_data="admin:users")])
         buttons.append([InlineKeyboardButton(text="🛡 Роли и доступы", callback_data="admin:roles")])
+        buttons.append([InlineKeyboardButton(text="📋 Полный аудит", callback_data="admin:audit")])
+        buttons.append([InlineKeyboardButton(text="💾 Резервные копии", callback_data="admin:backup")])
+        buttons.append([InlineKeyboardButton(text="⚙️ Настройки системы", callback_data="admin:settings")])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
@@ -37,7 +53,7 @@ async def menu_callback(callback: CallbackQuery) -> None:
             is_admin = bool(user and user.role == RoleCode.SUPERADMIN)
         await callback.message.edit_text(
             "🏢 <b>OFFICE VAULT</b>\n\nВыберите рабочий раздел:",
-            reply_markup=get_main_menu_keyboard(is_admin=is_admin),
+            reply_markup=await get_main_menu_keyboard(user=user, is_admin=is_admin),
         )
     elif data.startswith("menu:category:"):
         category = data.split(":")[-1]

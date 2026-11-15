@@ -126,7 +126,7 @@ async def test_seed_system_data_is_idempotent():
             }
             assert roles == len(RoleCode)
             assert permissions == len(PermissionCode)
-            assert category_group_permissions == 4
+            assert category_group_permissions == 208
             assert role_permissions == 32
             assert superadmin.role == RoleCode.SUPERADMIN
             assert superadmin.role_id == roles_by_code[RoleCode.SUPERADMIN.value].id

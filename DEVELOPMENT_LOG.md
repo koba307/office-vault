@@ -1,5 +1,26 @@
 # DEVELOPMENT LOG
 
+## 2026-11-15 — Phase 03: Authentication, Roles, Groups & Permission Service
+
+### Started
+
+- Phase 03 started after Phase 02 GitHub backup verification.
+- Created `app/core/permissions.py` — pure permission logic (decide_access, check_role_permission, matrix).
+- Created `app/core/security.py` — HMAC callback tokens, invite token generation/hashing.
+- Created `app/services/permissions/` package (service, category, record, file, cache, invalidation, invites, context, versions, errors).
+- Created `app/bot/middlewares/` (auth, permissions, throttling, audit).
+- Registered middlewares in `main.py`.
+- Added `Invite` model and migration `0008_access_and_invites`.
+- Updated seed with Mixed Access (BOSS grants on all categories).
+- Updated `menu.py` and `start.py` for role-based category visibility.
+- Added tests for permission matrix, callback schema, invite tokens.
+- Ruff and pytest pass; Docker build passed; image has no `.env`.
+
+### Current phase status
+
+- Phase 03 is `IN_PROGRESS`.
+- Implementation not yet complete; middleware registration, handler integration, and full tests remain.
+
 ## 2026-11-15 — Phase 02: Database Model & Alembic Migrations
 
 ### Implemented
