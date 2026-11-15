@@ -1,8 +1,9 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, Message
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import CallbackQuery, Message
 
+from app.database.models import RoleCode
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
 from app.services.files.service import upload_file
@@ -12,6 +13,11 @@ router = Router()
 
 
 class UploadFile(StatesGroup):
+    waiting_file = State()
+    waiting_category = State()
+
+
+class ImportCSV(StatesGroup):
     waiting_file = State()
     waiting_category = State()
 
@@ -55,8 +61,51 @@ async def finish_upload(message: Message, state: FSMContext) -> None:
                 created_by_id=user.id,
             )
             await message.answer(f"✅ Файл «{record.title}» загружен.")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             await message.answer(f"Ошибка: {e}")
+    await state.clear()
+
+
+@router.callback_query(F.data == "import:csv")
+async def start_import(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.set_state(ImportCSV.waiting_file)
+    await callback.message.answer("Отправьте CSV файл для импорта.")
+    await callback.answer()
+
+
+@router.message(ImportCSV.waiting_file, F.document)
+async def receive_import_file(message: Message, state: FSMContext) -> None:
+    doc = message.document
+    file = await message.bot.download(doc)
+    content = file.read().decode("utf-8", errors="replace")
+    await state.update_data(csv_text=content)
+    await state.set_state(ImportCSV.waiting_category)
+    await message.answer("Введите код категории (holodka / second_stage / closers / general):")
+
+
+@router.message(ImportCSV.waiting_category)
+async def finish_import(message: Message, state: FSMContext) -> None:
+    category = (message.text or "").strip()
+    data = await state.get_data()
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, message.from_user.id)
+        if not is_user_active(user) or user.role not in (RoleCode.SUPERADMIN, RoleCode.BOSS if False else user.role):
+            pass
+        if not is_user_active(user):
+            await message.answer("Нет доступа")
+            await state.clear()
+            return
+        if user.role not in (RoleCode.SUPERADMIN, RoleCode.BOSS):
+            await message.answer("Нет прав")
+            await state.clear()
+            return
+        from app.services.import_export.service import import_records_csv
+
+        try:
+            count = await import_records_csv(session, category_code=category, csv_text=data["csv_text"], created_by=user)
+            await message.answer(f"✅ Импортировано записей: {count}")
+        except Exception as e:  # noqa: BLE001
+            await message.answer(f"Ошибка импорта: {e}")
     await state.clear()
 
 

@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -15,10 +17,63 @@ from app.services.auth.admin import (
     set_user_role,
     set_user_status,
 )
-from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
-from uuid import UUID
+from app.services.auth.permissions import get_user_by_telegram_id
 
 router = Router()
+
+
+@router.callback_query(F.data == "admin:roles")
+async def admin_roles(callback: CallbackQuery) -> None:
+    async with async_session() as session:
+        me = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not _admin_only(me):
+            await callback.answer("Только SUPERADMIN", show_alert=True)
+            return
+        groups = await list_groups(session)
+
+    buttons = []
+    for g in groups:
+        buttons.append([InlineKeyboardButton(text=f"👥 {g.name}", callback_data=f"admin:groupview:{g.id}")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
+    await callback.message.edit_text("🛡 Роли и доступы — группы:", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("admin:groupview:"))
+async def admin_group_view(callback: CallbackQuery) -> None:
+    gid = (callback.data or "").split(":")[-1]
+    from uuid import UUID
+
+    async with async_session() as session:
+        me = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not _admin_only(me):
+            await callback.answer("Нет доступа", show_alert=True)
+            return
+        from sqlalchemy import select
+
+        from app.database.models import Group, User
+
+        group = await session.get(Group, UUID(gid))
+        if not group:
+            await callback.answer("Не найдена")
+            return
+        # users in group
+        from app.database.models import GroupMember
+
+        result = await session.execute(
+            select(User).join(GroupMember, GroupMember.user_id == User.id).where(GroupMember.group_id == UUID(gid))
+        )
+        users = result.scalars().all()
+
+    lines = [f"👥 <b>{group.name}</b>\n"]
+    if not users:
+        lines.append("Пользователей нет.")
+    else:
+        for u in users:
+            lines.append(f"• {u.display_name or u.telegram_id} — {u.role.value}")
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅️ Назад", callback_data="admin:roles")]])
+    await callback.message.edit_text("\n".join(lines), reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
 
 
 class AddUser(StatesGroup):

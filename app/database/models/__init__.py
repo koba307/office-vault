@@ -13,7 +13,8 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -66,7 +67,7 @@ class User(Base):
     )
     last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    group_memberships: Mapped[list["GroupMember"]] = relationship(back_populates="user")
+    group_memberships: Mapped[list["GroupMember"]] = relationship(back_populates="user", foreign_keys="GroupMember.user_id")
 
 
 class Group(Base):
@@ -91,7 +92,7 @@ class GroupMember(Base):
     assigned_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     group: Mapped[Group] = relationship(back_populates="members")
-    user: Mapped[User] = relationship(back_populates="group_memberships")
+    user: Mapped[User] = relationship(back_populates="group_memberships", foreign_keys=[user_id])
 
 
 class Category(Base):

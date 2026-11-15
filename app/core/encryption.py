@@ -1,6 +1,7 @@
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-import os
 import base64
+import os
+
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 from app.core.config import settings
 

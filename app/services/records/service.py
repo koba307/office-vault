@@ -8,6 +8,29 @@ from app.core.encryption import encrypt_secret
 from app.database.models import Category, Record, RecordField, RecordType, User
 
 
+async def update_record(
+    session: AsyncSession,
+    record_id: UUID,
+    *,
+    title: str | None = None,
+    description: str | None = None,
+    user_id: UUID | None = None,
+) -> Record | None:
+    record = await get_record(session, record_id)
+    if not record:
+        return None
+    if title is not None:
+        record.title = title
+    if description is not None:
+        record.description = description
+    record.version = (record.version or 1) + 1
+    if user_id:
+        record.updated_by = user_id
+    await session.commit()
+    await session.refresh(record)
+    return record
+
+
 async def get_record(session: AsyncSession, record_id: UUID) -> Record | None:
     result = await session.execute(
         select(Record).where(Record.id == record_id).options(selectinload(Record.fields))

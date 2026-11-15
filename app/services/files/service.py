@@ -30,6 +30,20 @@ async def upload_file(
     content_type: str,
     created_by_id: UUID,
 ) -> Record:
+    # Optional ClamAV scan
+    if getattr(settings, "clamav_host", None):
+        try:
+            import pyclamd
+
+            cd = pyclamd.ClamdNetworkSocket(settings.clamav_host, settings.clamav_port)
+            scan_result = cd.scan_stream(file_bytes)
+            if scan_result:
+                raise ValueError(f"Файл заражён: {scan_result}")
+        except Exception as e:
+            if "заражён" in str(e):
+                raise
+            # If ClamAV unavailable, skip scan
+
     client = get_minio_client()
     bucket = getattr(settings, "minio_bucket", None) or "office-vault"
     if not client.bucket_exists(bucket):

@@ -1,3 +1,3 @@
-from app.bot.handlers import admin, favorites, files, menu, records, search, start
+from app.bot.handlers import admin, favorites, files, menu, profile, recent, records, search, start
 
-__all__ = ["start", "menu", "records", "search", "favorites", "admin", "files"]
+__all__ = ["admin", "favorites", "files", "menu", "profile", "recent", "records", "search", "start"]

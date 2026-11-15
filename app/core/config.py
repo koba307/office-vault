@@ -28,5 +28,9 @@ class Settings(BaseSettings):
     environment: str = "development"
     log_level: str = "INFO"
 
+    # ClamAV (optional)
+    clamav_host: str | None = None
+    clamav_port: int = 3310
+
 
 settings = Settings()

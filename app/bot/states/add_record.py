@@ -6,3 +6,8 @@ class AddRecord(StatesGroup):
     waiting_description = State()
     waiting_fields = State()
     confirm = State()
+
+
+class EditRecord(StatesGroup):
+    waiting_title = State()
+    waiting_description = State()

@@ -17,6 +17,7 @@ def get_main_menu_keyboard(is_admin: bool = False) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🔎 Поиск", callback_data="search:start")],
         [InlineKeyboardButton(text="📁 Загрузить файл", callback_data="files:upload")],
         [InlineKeyboardButton(text="📤 Экспорт CSV", callback_data="export:csv")],
+        [InlineKeyboardButton(text="📥 Импорт CSV", callback_data="import:csv")],
         [InlineKeyboardButton(text="⭐ Избранное", callback_data="favorites:list")],
         [InlineKeyboardButton(text="🕘 Недавнее", callback_data="recent:list")],
         [InlineKeyboardButton(text="👤 Мой профиль", callback_data="profile:view")],
