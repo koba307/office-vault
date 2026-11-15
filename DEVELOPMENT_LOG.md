@@ -21,12 +21,16 @@
 
 - None for Phase 01.
 
+### Completion
+
+- Committed as `aab86cf` (`phase-01: establish project governance and baseline`).
+- Pushed to `origin/main`.
+- Tag `v0.1.0-phase-01` created and pushed.
+- Remote commit and tag verified.
+- Phase 01 marked `GITHUB_BACKUP_VERIFIED`.
+
 ### Next
 
-- Commit Phase 01.
-- Push to GitHub.
-- Tag `v0.1.0-phase-01`.
-- Verify remote commit and tag.
 - Begin Phase 02 (database model and Alembic migrations).
 
 ## 2026-11-15 — Pre-phase baseline work

@@ -1,25 +1,25 @@
 # PROJECT STATUS — OFFICE VAULT / MillionersBot
 
 **Last updated:** 2026-11-15  
-**Current phase:** Phase 01 — Project Governance & Baseline  
-**Phase status:** IN_PROGRESS  
-**Overall status:** Foundation implemented; TZ v2.0 compliance in progress.
+**Current phase:** Phase 02 — Database Model & Alembic Migrations  
+**Phase status:** NOT_STARTED  
+**Overall status:** Phase 01 verified; TZ v2.0 compliance in progress.
 
 ## Current Phase
 
 | Field | Value |
 |---|---|
-| Phase | 01 — Project Governance & Baseline |
-| Status | IN_PROGRESS |
-| Started | 2026-11-15 |
-| Depends on | — |
-| Next phase | 02 — Database Model & Alembic Migrations |
+| Phase | 02 — Database Model & Alembic Migrations |
+| Status | NOT_STARTED |
+| Started | — |
+| Depends on | Phase 01 (verified) |
+| Next phase | 03 — Authentication, Roles, Groups & Permission Service |
 
 ## Completed Phases
 
 | Phase | Name | Status |
 |---|---|---|
-| 01 | Project Governance & Baseline | IN_PROGRESS |
+| 01 | Project Governance & Baseline | GITHUB_BACKUP_VERIFIED |
 
 ## Remaining Phases
 
@@ -73,9 +73,9 @@ See `docs/GAP-ANALYSIS.md`.
 |---|---|
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
-| Latest local commit | `095d599` |
-| Latest remote commit | `095d599` |
-| Latest verified tag | — (Phase 01 tag pending) |
+| Latest verified phase commit | `aab86cf` |
+| Latest remote commit | `aab86cf` |
+| Latest verified tag | `v0.1.0-phase-01` |
 
 ## Known Issues
 
@@ -91,7 +91,8 @@ See `docs/GAP-ANALYSIS.md`.
 
 ## Next Planned Actions
 
-1. Finish Phase 01 documents.
-2. Commit and push Phase 01.
-3. Create and verify tag `v0.1.0-phase-01`.
-4. Start Phase 02: database model and Alembic migrations.
+1. Start Phase 02: database model and Alembic migrations.
+2. Add all missing TZ tables and indexes.
+3. Configure Alembic and initial migration.
+4. Run migration smoke tests and regression tests.
+5. Commit, push, tag, and verify Phase 02.
