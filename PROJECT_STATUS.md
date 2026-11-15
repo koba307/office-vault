@@ -1,16 +1,16 @@
 # PROJECT STATUS — OFFICE VAULT / MillionersBot
 
 **Last updated:** 2026-11-15  
-**Current phase:** Phase 02 — Database Model & Alembic Migrations  
-**Phase status:** BLOCKED
-**Overall status:** Phase 01 verified; Phase 02 passes validation but awaits a verified GitHub backup.
+**Current phase:** Phase 03 — Authentication, Roles, Groups & Permission Service  
+**Phase status:** NOT_STARTED
+**Overall status:** Phase 01 and Phase 02 verified; Phase 03 ready to begin.
 
 ## Current Phase
 
 | Field | Value |
 |---|---|
-| Phase | 02 — Database Model & Alembic Migrations |
-| Status | BLOCKED |
+| Phase | 03 — Authentication, Roles, Groups & Permission Service |
+| Status | NOT_STARTED |
 | Started | 2026-11-15 |
 | Depends on | Phase 01 (verified) |
 | Next phase | 03 — Authentication, Roles, Groups & Permission Service |
@@ -20,6 +20,7 @@
 | Phase | Name | Status |
 |---|---|---|
 | 01 | Project Governance & Baseline | GITHUB_BACKUP_VERIFIED |
+| 02 | Database Model & Alembic Migrations | GITHUB_BACKUP_VERIFIED |
 
 ## Remaining Phases
 
@@ -84,16 +85,13 @@ See `docs/GAP-ANALYSIS.md`.
 |---|---|
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
-| Latest verified phase commit | `1a5cfc3` |
-| Phase 02 implementation commit | `071f2bb` (local only) |
-| Phase 02 status commits | `9aa7bc0`, `30d9ddf`, `071f2bb`, `8d8376f`, `ad75d12`, `8770d2f` (local only, unpushed) |
-| Latest remote commit | `df4504f` |
-| Latest verified tag | `v0.1.0-phase-01` |
+| Latest verified phase commit | `cd95bee` |
+| Latest remote commit | `cd95bee` |
+| Latest verified tag | `v0.2.0-phase-02` |
 
 ## Known Issues
 
 - TZ v2.0 has many unimplemented features (see gap analysis).
-- Phase 02 implementation, tests, docs, and audit fixes are local at `071f2bb` but cannot be pushed until GitHub authentication is configured securely.
 - Permission model does not support record/file-level access.
 - No full test suite.
 - No backup/restore for PostgreSQL/MinIO.
@@ -102,11 +100,10 @@ See `docs/GAP-ANALYSIS.md`.
 - Secrets are sent in ordinary Telegram messages.
 - MinIO image unavailable in this environment; RustFS is used as S3-compatible replacement.
 - Previously disclosed bot/GitHub/SSH credentials must be rotated. New image builds exclude `.env`, but running containers were not recreated during Phase 02.
-- Do not reuse the previously disclosed GitHub PAT; revoke it and authenticate with GitHub CLI/credential manager.
+
 
 ## Next Planned Actions
 
-1. Revoke/rotate the previously disclosed credentials; keep the existing encryption master key until encrypted data has a re-encryption plan.
-2. Configure GitHub authentication securely (for example, `gh auth login`; do not paste a new token into chat).
-3. Push local `main`, create `v0.2.0-phase-02`, and verify the remote commit and tag.
-4. Do not start Phase 03 before remote backup verification.
+1. Phase 02 verified — ready for Phase 03.
+2. Rotate previously disclosed credentials and recreate containers via planned deployment.
+3. Begin Phase 03: Authentication, Roles, Groups & Permission Service.

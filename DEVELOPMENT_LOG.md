@@ -51,13 +51,10 @@
 
 ### Current phase status
 
-- Phase 02 implementation, tests, docs, and local commit are complete.
-- Local commit: `36ca3c8` — `phase-02: implement database model and alembic migrations`.
-- Push attempts for the implementation and follow-up status commits failed because no GitHub credentials are configured (`could not read Username`).
-- A local documentation commit records this backup blocker at `ad75d12`; it is also unpushed.
-- No Phase 02 tag was created because the remote backup is not verified.
-- Phase status is `BLOCKED`; configure GitHub auth securely, push, verify, and
-  tag before Phase 03. Do not reuse the previously disclosed personal access token.
+- Phase 02 marked `GITHUB_BACKUP_VERIFIED`.
+- Implementation commit: `071f2bb` — `phase-02: harden migrations and seeds after audit`.
+- Remote commit: `cd95bee` (tag `v0.2.0-phase-02`).
+- Phase 03 ready to begin.
 
 ## 2026-11-15 — Phase 01: Project Governance & Baseline
 
