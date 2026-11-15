@@ -13,7 +13,7 @@ aiogram 3 Bot (app/bot)
     │
     ├── handlers/        Telegram handlers (start, menu, records, admin, files, search, favorites, recent, profile)
     ├── states/          FSM states
-    └── main.py          Startup, DB init, seed, polling
+    └── main.py          Startup, Alembic migrations, seed, polling
     │
     ▼
 Services (app/services)
@@ -36,14 +36,24 @@ ARQ worker (app/workers)
 
 ## 2. Current Data Model
 
-- `users` — Telegram users, role enum, status.
-- `groups` — system groups.
-- `group_members` — user-group membership.
-- `categories` — 4 root categories.
-- `records` — universal records.
-- `record_fields` — dynamic fields (TEXT / PASSWORD).
-- `audit_logs` — audit events.
-- `favorites` — user favorites.
+- **Пользователи и права:** `users`, `roles`, `permissions`, `role_permissions`,
+  `user_permissions`, `groups`, `group_members`, `user_group_permissions`.
+- **Категории:** `categories`, `category_permissions`,
+  `category_group_permissions`, `category_user_permissions`.
+- **Записи:** `records`, `record_fields`, `record_permissions`,
+  `record_group_permissions`, `record_user_permissions`, `tags`, `record_tags`,
+  `record_versions`.
+- **Файлы:** `files`, `file_versions`, `record_files`, `file_access_logs`,
+  `file_scan_results`.
+- **Пользовательские функции:** `favorites`, `recent_records`, `user_settings`.
+- **Импорт/экспорт:** `import_jobs`, `import_errors`, `export_jobs`.
+- **Аудит:** `audit_logs`, `security_events`.
+- **Инфраструктура:** `backups`, `system_settings`, `encryption_key_versions`,
+  `background_jobs`.
+
+Схема управляется Alembic (`app/database/migrations`). Существующая до Alembic
+база автоматически получает baseline stamp только после проверки точного набора
+таблиц и колонок.
 
 ## 3. Target Architecture (TZ v2.0)
 
@@ -96,6 +106,7 @@ ARQ Workers (import, scan, backup, cleanup, notifications)
 - S3-compatible object storage.
 - ClamAV (optional but enabled in compose).
 - ARQ for background jobs.
+- Python dependencies are pinned in `requirements.lock`; Docker builds install from that lock.
 
 ## 6. Security Boundaries
 
@@ -103,4 +114,5 @@ ARQ Workers (import, scan, backup, cleanup, notifications)
 - Only bot long-polling requires outbound internet.
 - Master encryption key is provided via environment and must not be stored with data.
 - `.env` is ignored by Git; `.env.example` contains placeholders only.
+- `.dockerignore` excludes `.env` from new image build contexts.
 - Permissions are always checked server-side; callback data is not proof of access.

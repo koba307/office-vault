@@ -23,6 +23,13 @@ All notable changes to this project are documented here.
 - Basic tests for encryption.
 - Docker build fixes (hatchling, README copy).
 - RustFS as S3-compatible storage replacement for unavailable MinIO image.
+- Complete PostgreSQL model set for TZ v2.0 (roles/permissions, category and record access, tags, versions, files, jobs, audit and system tables).
+- Alembic async environment and seven ordered migrations.
+- Strict legacy-schema validation before stamping pre-Alembic databases.
+- Idempotent system seed for roles, permissions, categories, groups and SUPERADMIN.
+- Pinned Python dependency set in `requirements.lock`; Docker now installs from the lock file.
+- `.dockerignore` to keep environment files and local artifacts out of newly built images.
+- Database schema, migration-runner and dependency-lock tests.
 
 ### Fixed
 
@@ -30,6 +37,8 @@ All notable changes to this project are documented here.
 - Docker Compose MinIO environment variable mismatch.
 - Import handler dead code.
 - Ruff lint errors.
+- Existing users receive their role foreign key during upgrade; new users and role changes keep `role` and `role_id` synchronized.
+- SUPERADMIN cannot be assigned through the ordinary user/role UI.
 
 ## [0.1.0] — 2026-11-14
 

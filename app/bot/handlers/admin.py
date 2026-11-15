@@ -4,8 +4,9 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from sqlalchemy import select
 
-from app.database.models import RoleCode, UserStatus
+from app.database.models import Role, RoleCode, User, UserStatus
 from app.database.session import async_session
 from app.services.auth.admin import (
     assign_user_to_group,
@@ -175,10 +176,20 @@ async def change_role_menu(callback: CallbackQuery) -> None:
 async def set_role(callback: CallbackQuery) -> None:
     parts = (callback.data or "").split(":")
     uid, role_name = parts[2], parts[3]
+    if role_name not in {RoleCode.EMPLOYEE.value, RoleCode.BOSS.value}:
+        await callback.answer("SUPERADMIN назначается только конфигурацией сервера", show_alert=True)
+        return
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
         if not _admin_only(me):
             await callback.answer("Нет доступа", show_alert=True)
+            return
+        target = await get_user_by_id(session, UUID(uid))
+        if not target:
+            await callback.answer("Пользователь не найден", show_alert=True)
+            return
+        if target.role == RoleCode.SUPERADMIN:
+            await callback.answer("Роль настроенного SUPERADMIN нельзя изменить", show_alert=True)
             return
         await set_user_role(session, UUID(uid), RoleCode(role_name))
     await callback.answer(f"Роль установлена: {role_name}")
@@ -269,17 +280,25 @@ async def add_user_name(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data.startswith("admin:newrole:"))
 async def finish_add_user(callback: CallbackQuery, state: FSMContext) -> None:
     role_name = (callback.data or "").split(":")[-1]
+    if role_name not in {RoleCode.EMPLOYEE.value, RoleCode.BOSS.value}:
+        await callback.answer("Нельзя назначить эту роль через добавление пользователя", show_alert=True)
+        return
     data = await state.get_data()
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
         if not _admin_only(me):
             await callback.answer()
             return
-        from app.database.models import User
+        role_result = await session.execute(select(Role).where(Role.code == role_name))
+        role = role_result.scalar_one_or_none()
+        if role is None:
+            await callback.answer("Роль не найдена", show_alert=True)
+            return
         user = User(
             telegram_id=data["telegram_id"],
             display_name=data.get("display_name"),
             role=RoleCode(role_name),
+            role_id=role.id,
             status=UserStatus.ACTIVE,
         )
         session.add(user)

@@ -8,7 +8,7 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 ## Phase 01 — Project Governance & Baseline
 
-**Status:** IN_PROGRESS
+**Status:** GITHUB_BACKUP_VERIFIED
 
 ### Objectives
 
@@ -67,7 +67,7 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 ## Phase 02 — Database Model & Alembic Migrations
 
-**Status:** NOT_STARTED
+**Status:** TESTING
 
 ### Objectives
 
@@ -86,14 +86,18 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 - Security events, backups, system settings, encryption key versions, background jobs.
 - Alembic configuration and initial migration.
 - Seed migration for 4 categories, 4 groups, SUPERADMIN.
+- Pinned dependency set in `requirements.lock`, consumed by the Docker build.
 
 ### Files Expected
 
-- `app/database/models/*` (split by domain).
+- `app/database/models/__init__.py` (extend the existing model package; domain
+  splitting is deferred to a separately reviewed refactor to keep this phase
+  focused).
 - `app/database/migrations/env.py`, `alembic.ini`, `versions/*`.
 - `app/database/session.py`.
 - `app/bot/main.py` (startup via Alembic).
-- Tests for model metadata and migration smoke.
+- `requirements.lock` and `Dockerfile`.
+- Tests for model metadata, seed idempotency, legacy schema validation, and migration smoke.
 
 ### Dependencies
 
@@ -111,13 +115,19 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 - `alembic upgrade head` on empty DB.
 - `alembic downgrade base` and re-upgrade.
+- Upgrade from a database created with the prior ORM schema.
+- `alembic check` reports no model/schema drift.
 - Model import smoke test.
+- Docker bot/worker images build from the pinned lock file.
 - Existing functionality regression check.
 
 ### Acceptance Criteria
 
 - All TZ tables exist.
 - Migrations run from scratch and from current schema.
+- Existing legacy users receive a non-null `role_id` during migration.
+- System seed is idempotent and creates the exact four categories/groups.
+- All declared Python dependencies are pinned and Docker uses the lock file.
 - Seed data created.
 - Tests pass.
 - GitHub backup verified.

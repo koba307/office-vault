@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Group, GroupMember, RoleCode, User, UserStatus
+from app.database.models import Group, GroupMember, Role, RoleCode, User, UserStatus
 
 
 async def list_users(session: AsyncSession, limit: int = 50) -> list[User]:
@@ -17,9 +17,18 @@ async def get_user_by_id(session: AsyncSession, user_id: UUID) -> User | None:
 
 
 async def set_user_role(session: AsyncSession, user_id: UUID, role: RoleCode) -> None:
+    if role == RoleCode.SUPERADMIN:
+        raise ValueError("SUPERADMIN can only be assigned through server configuration")
     user = await get_user_by_id(session, user_id)
     if user:
+        if user.role == RoleCode.SUPERADMIN:
+            raise ValueError("The configured SUPERADMIN role cannot be changed through the UI")
+        result = await session.execute(select(Role).where(Role.code == role.value))
+        role_record = result.scalar_one_or_none()
+        if role_record is None:
+            raise ValueError(f"Role {role.value} does not exist")
         user.role = role
+        user.role_id = role_record.id
         await session.commit()
 
 

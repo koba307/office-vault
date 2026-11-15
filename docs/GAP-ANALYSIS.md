@@ -32,24 +32,29 @@
 
 ### 2.1. Модель данных
 
-Не хватает таблиц:
+**Структурная часть реализована в Phase 02:** все перечисленные ниже таблицы и
+связи заведены моделями и миграциями Alembic. Проверено на пустой PostgreSQL и
+на тестовой базе, созданной старой ORM-схемой; `alembic check` не обнаруживает
+расхождений.
 
-- roles, permissions, role_permissions, user_permissions, user_group_permissions
-- category_permissions, category_group_permissions, category_user_permissions
-- record_permissions, record_group_permissions, record_user_permissions
-- tags, record_tags, record_versions
-- files, file_versions, record_files, file_access_logs, file_scan_results
-- recent_records, user_settings
-- import_jobs, import_errors, export_jobs
-- security_events, backups, system_settings, encryption_key_versions, background_jobs
+- Роли и права: `roles`, `permissions`, `role_permissions`, `user_permissions`,
+  `user_group_permissions`.
+- Права категорий и записей: `category_permissions`, `category_group_permissions`,
+  `category_user_permissions`, `record_permissions`, `record_group_permissions`,
+  `record_user_permissions`.
+- Теги и версии: `tags`, `record_tags`, `record_versions`.
+- Файлы: `files`, `file_versions`, `record_files`, `file_access_logs`,
+  `file_scan_results`.
+- Пользовательские функции: `recent_records`, `user_settings`.
+- Импорт/экспорт: `import_jobs`, `import_errors`, `export_jobs`.
+- Аудит и инфраструктура: `security_events`, `backups`, `system_settings`,
+  `encryption_key_versions`, `background_jobs`.
 
 Текущие модели не поддерживают:
 
-- запись-уровневые права;
-- теги;
-- вложения и версии файлов;
-- историю версий записей;
-- подкатегории;
+- завершённое использование этих таблиц в сервисах/Telegram-сценариях;
+- все типы пользовательских полей в FSM и валидации;
+- полную историю версий и optimistic locking;
 - пригласительные токены;
 - статистику и уведомления.
 
@@ -147,8 +152,11 @@
 
 ### 2.12. Инфраструктура
 
-- Нет Alembic-миграций (используется `create_all`).
-- Нет lock-файла зависимостей.
+- Alembic миграции реализованы в Phase 02; `create_all` больше не вызывается при
+  старте бота. Для старой базы baseline stamp разрешён только после строгой
+  проверки её структуры.
+- Зафиксированный набор зависимостей добавлен в `requirements.lock`; Docker
+  устанавливает пакеты именно из этого файла.
 - Нет healthcheck у bot/worker.
 - Нет ротации логов и мониторинга.
 - Нет автоматического бэкапа PostgreSQL/MinIO и восстановления.
@@ -158,17 +166,17 @@
 
 ### 2.13. Тесты
 
-- Только unit-тест шифрования.
-- Нет функциональных, интеграционных, security, load, recovery тестов.
-- Нет тестов ролей и групп.
+- Добавлены тесты шифрования, моделей, миграционного runner, lock-файла и
+  идемпотентности seed с PostgreSQL.
+- Функциональные, security, load и recovery тесты ещё не реализованы.
+- Тесты полной матрицы ролей/групп и прав ещё не реализованы.
 
 ## 3. Приоритетный план
 
 ### Этап A. Модель данных и миграции
 
-1. Добавить недостающие таблицы (права, теги, версии, файлы, recent, jobs, backups, settings, key versions).
-2. Перевести инициализацию на Alembic.
-3. Добавить индексы и ограничения.
+Выполнено в Phase 02: добавлены TZ-таблицы, индексы и ограничения; запуск
+переведён на Alembic, добавлена проверка совместимости legacy-схемы и lock-файл.
 
 ### Этап B. Permission Service
 

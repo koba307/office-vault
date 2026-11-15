@@ -1,5 +1,61 @@
 # DEVELOPMENT LOG
 
+## 2026-11-15 — Phase 02: Database Model & Alembic Migrations
+
+### Implemented
+
+- Expanded SQLAlchemy metadata to 37 TZ v2.0 tables, including roles and
+  permissions, mixed-access relations, categories, record/file metadata,
+  versions, import/export jobs, audit/security events, backups, settings, and
+  background jobs.
+- Added the remaining access, field, scan, job, and backup enums.
+- Added seven ordered Alembic revisions (`0001`–`0007`) and async migration
+  environment/configuration.
+- Replaced startup `Base.metadata.create_all` with Alembic `upgrade head`.
+- Added fail-closed validation before stamping a pre-Alembic database: only the
+  exact supported legacy table/column set is stamped at `0001`.
+- Added deterministic system roles and backfilled all existing users' non-null
+  `role_id` in migration `0002`.
+- Made system seed idempotent for roles, permissions, the four categories and
+  groups, category VIEW grants, and configured SUPERADMIN.
+- Updated new-user/role-change paths to maintain both `role` and `role_id`, and
+  rejected attempts to assign SUPERADMIN through the ordinary role UI/service.
+- Added `requirements.lock`; Docker now installs exact pinned versions from it.
+- Added `.dockerignore` and ignored all local `.env.*` files; new Docker image
+  build contexts exclude environment credentials.
+- Added tests for model tables/enums, migration runner validation, lock coverage,
+  seed idempotency, role FK synchronization, and SUPERADMIN assignment guard.
+
+### Validation so far
+
+- Fresh PostgreSQL migration to head: passed.
+- `alembic check` after fresh migration: no schema drift.
+- Legacy ORM-created PostgreSQL schema: validated, stamped, upgraded, seeded,
+  and checked successfully.
+- Existing legacy employee record: `role_id` backfilled and verified non-null.
+- Repeated seed: idempotent.
+- `alembic downgrade base` and re-upgrade on a dedicated empty test DB: passed.
+- Partial/unknown schema: startup refuses to stamp it.
+- `ruff check app tests`: passed.
+- `compileall`: passed.
+- `pytest` with isolated PostgreSQL test database: 12 passed.
+- Alembic fresh upgrade and legacy stamp/upgrade both pass `alembic check`.
+- Alembic downgrade-to-base and re-upgrade smoke test: passed on a dedicated DB.
+- Docker Compose config and pinned-lock bot/worker build: passed.
+- Tests in the built bot image: 11 passed, 1 skipped (the optional integration test has no `TEST_DATABASE_URL` in the image).
+- New Docker image check confirms `/app/.env` is absent.
+- The running compose containers were intentionally not recreated: Phase 02 is
+  not yet GitHub-verified, and startup would apply schema migrations. The
+  already-running images were built before `.dockerignore`; rotate exposed
+  credentials and recreate containers only through a planned secure deployment.
+
+### Current phase status
+
+- Phase 02 is `TESTING`; it is not complete until final validation, docs,
+  GitHub push, remote verification, and tag verification all pass.
+- GitHub auth for the phase backup must be restored securely; do not reuse the
+  previously disclosed personal access token.
+
 ## 2026-11-15 — Phase 01: Project Governance & Baseline
 
 ### Actions
