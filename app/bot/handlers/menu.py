@@ -230,6 +230,14 @@ def category_content_keyboard(
             )
         ],
     )
+    # Поиск внутри раздела (ТЗ §7.2, §11)
+    buttons.append(
+        [
+            InlineKeyboardButton(
+                text="🔎 Поиск в разделе", callback_data=f"search:section:{category_code}"
+            )
+        ]
+    )
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=back_callback)])
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 

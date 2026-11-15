@@ -30,8 +30,9 @@ SECTION_PREFIX = "search:section:"
 FILTER_PREFIX = "search:filter:"
 PAGE_PREFIX = "search:page:"
 PAGE_SIZE = 5
-# Выборка с запасом: результаты дополнительно фильтруются по правам пользователя
+# Сервис применяет права до ограничения выдачи, поэтому запас нужен только для страниц.
 MAX_RESULTS = 200
+MAX_QUERY_LENGTH = 256
 
 # ALL + все типы записей — допустимые значения фильтра (ТЗ §7.5 «Фильтрация»)
 FILTERS: tuple[str, ...] = ("ALL", *(record_type.value for record_type in RecordType))
@@ -66,6 +67,21 @@ def parse_page_callback(data: str | None) -> int | None:
     return int(raw) if raw.isdigit() else None
 
 
+def normalize_filter(value: str | None) -> str:
+    """Приводит сохранённый фильтр к допустимому значению (защита от старых состояний)."""
+    normalized = str(value or "ALL").strip().upper()
+    return normalized if normalized in FILTERS else "ALL"
+
+
+def normalize_page(value: object) -> int:
+    """Безопасно разбирает номер страницы из FSM; мусор превращается в первую страницу."""
+    try:
+        page = int(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return 0
+    return max(page, 0)
+
+
 def filter_rows(active: str) -> list[list[InlineKeyboardButton]]:
     """Ряды кнопок-фильтров по типу данных, текущий фильтр подсвечен."""
     row: list[InlineKeyboardButton] = []
@@ -93,7 +109,9 @@ def _results_markup(
         [InlineKeyboardButton(text=f"📄 {record.title}", callback_data=f"record:view:{record.id}")]
         for record in records
     ]
-    rows.extend(pagination_keyboard(total, page, PAGE_SIZE, PAGE_PREFIX).inline_keyboard)
+    rows.extend(
+        pagination_keyboard(total, page, PAGE_SIZE, PAGE_PREFIX.rstrip(":")).inline_keyboard
+    )
     rows.extend(filter_rows(filter_type))
     rows.append(
         [
@@ -107,26 +125,22 @@ def _results_markup(
 async def _visible_records(
     session: AsyncSession, user: User, query: str, category_code: str | None, filter_type: str
 ) -> list[Record]:
-    """Результаты поиска, видимые пользователю (Default Deny по каждой записи)."""
+    """Результаты поиска, уже отфильтрованные по правам в сервисе (Default Deny)."""
     rtype = None if filter_type == "ALL" else RecordType(filter_type)
-    records = await search_records(
+    return await search_records(
         session,
         query,
+        user,
         limit=MAX_RESULTS,
         category_code=category_code,
         record_type=rtype,
     )
-    visible: list[Record] = []
-    for record in records:
-        if await PermissionService.can(user, "VIEW", "record", record.id, session):
-            visible.append(record)
-    return visible
 
 
 async def _render(source: CallbackQuery | Message, state: FSMContext) -> None:
     """Перерисовывает страницу результатов; при пустом состоянии сообщает об устаревании."""
     data = await state.get_data()
-    query = data.get("query")
+    query = str(data.get("query") or "").strip()[:MAX_QUERY_LENGTH]
     if not query:
         await state.clear()
         if isinstance(source, CallbackQuery):
@@ -135,9 +149,9 @@ async def _render(source: CallbackQuery | Message, state: FSMContext) -> None:
         await source.answer(STALE_TEXT)
         return
 
-    filter_type = data.get("record_type") or "ALL"
+    filter_type = normalize_filter(data.get("record_type"))
     category_code = data.get("category")
-    page = max(int(data.get("page") or 0), 0)
+    page = normalize_page(data.get("page"))
 
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, source.from_user.id)
@@ -148,12 +162,30 @@ async def _render(source: CallbackQuery | Message, state: FSMContext) -> None:
             else:
                 await source.answer("Нет доступа")
             return
-        items = await _visible_records(session, user, query, category_code, filter_type)
+
         section_title = None
         if category_code:
             category = await get_category(session, category_code)
-            if category is not None:
-                section_title = category_title(category.code, category.name)
+            if category is None or category.status != "ACTIVE":
+                await state.clear()
+                if isinstance(source, CallbackQuery):
+                    await source.answer(STALE_TEXT, show_alert=True)
+                else:
+                    await source.answer(STALE_TEXT)
+                return
+            if not await PermissionService.can(
+                user, "VIEW", "category", category.id, session
+            ):
+                # Права могли быть отозваны после открытия поиска
+                await state.clear()
+                if isinstance(source, CallbackQuery):
+                    await source.answer("Нет доступа к разделу", show_alert=True)
+                else:
+                    await source.answer("Нет доступа к разделу")
+                return
+            section_title = category_title(category.code, category.name)
+
+        items = await _visible_records(session, user, query, category_code, filter_type)
 
     total = len(items)
     pages = total_pages(total, PAGE_SIZE)

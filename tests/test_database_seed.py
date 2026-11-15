@@ -131,6 +131,9 @@ async def test_seed_system_data_is_idempotent():
             assert superadmin.role == RoleCode.SUPERADMIN
             assert superadmin.role_id == roles_by_code[RoleCode.SUPERADMIN.value].id
             assert superadmin.status == UserStatus.BLOCKED
+            # Восстанавливаем статус для проверки недавних записей и guard-ов
+            superadmin.status = UserStatus.ACTIVE
+            await session.commit()
             assert general.status == "DISABLED"
             assert general_permission is not None
             assert general_permission.access_mode == AccessMode.ALL_EMPLOYEES

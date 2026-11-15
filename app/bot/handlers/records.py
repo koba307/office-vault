@@ -26,7 +26,9 @@ from app.database.models import (
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active, log_audit
 from app.services.categories import get_category, get_category_by_id, list_categories
+from app.services.favorites.service import is_favorite
 from app.services.permissions import PermissionService
+from app.services.recent.service import add_recent
 from app.services.records.fields import (
     FIELD_TYPE_HINTS,
     FIELD_TYPE_LABELS,
@@ -1100,6 +1102,19 @@ async def view_record(callback: CallbackQuery) -> None:
     if rid is None:
         await callback.answer("Некорректная запись")
         return
+    await render_record_card(callback, rid)
+
+
+def _favorite_button(record_id: UUID, is_fav: bool) -> InlineKeyboardButton:
+    if is_fav:
+        return _button("💔 Убрать из избранного", f"favorite:remove:{record_id}")
+    return _button("⭐ В избранное", f"favorite:add:{record_id}")
+
+
+async def render_record_card(
+    callback: CallbackQuery, rid: UUID, notice: str | None = None
+) -> None:
+    """Карточка записи. notice — текст уведомления после успешного действия в карточке."""
     async with async_session() as session:
         user = await _load_user(session, callback.from_user.id)
         if not await is_user_active(user):
@@ -1112,9 +1127,13 @@ async def view_record(callback: CallbackQuery) -> None:
         if not record:
             await callback.answer("Запись не найдена")
             return
+        # Просмотр фиксируется в истории: только id записи и дата,
+        # значения полей и секреты туда не попадают
+        await add_recent(session, user.id, rid)
         can_edit = await _has_permission(session, user, "EDIT", "record", rid)
         can_archive = await _has_permission(session, user, "ARCHIVE", "record", rid)
         can_delete = await _has_permission(session, user, "DELETE", "record", rid)
+        is_fav = await is_favorite(session, user.id, rid)
 
     lines = [f"📄 <b>{_escape(record.title)}</b>", f"Тип: {_type_title(record.record_type)}"]
     if record.description:
@@ -1136,7 +1155,7 @@ async def view_record(callback: CallbackQuery) -> None:
     if record.tags:
         tags = ", ".join(link.tag.name for link in record.tags if link.tag)
         lines += ["", f"🏷 {_escape(tags)}"]
-    buttons.append([_button("⭐ В избранное", f"favorite:add:{record.id}")])
+    buttons.append([_favorite_button(record.id, is_fav)])
     if record.record_type == RecordType.FILES:
         buttons.append([_button("⬇️ Скачать файл", f"record:download:{record.id}")])
     if can_edit:
@@ -1153,7 +1172,7 @@ async def view_record(callback: CallbackQuery) -> None:
         reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
         parse_mode="HTML",
     )
-    await callback.answer()
+    await callback.answer(notice)
 
 
 def _resolve_field_by_index(record, index: int):
@@ -1198,6 +1217,8 @@ async def reveal_secret_short(callback: CallbackQuery) -> None:
         label = field.field_label
         await log_audit(session, user.id, "REVEAL_SECRET", "RecordField", str(field.id))
 
+    # Раскрытие секрета не добавляется в историю просмотров: наружу уходит
+    # только ephemeral-сообщение, значения в recent_* таблицах не сохраняются
     await callback.message.answer(
         f"🔑 {_escape(label)}:\n<code>{_escape(plain)}</code>",
         parse_mode="HTML",
@@ -1236,6 +1257,7 @@ async def reveal_secret(callback: CallbackQuery) -> None:
         label = field.field_label
         await log_audit(session, user.id, "REVEAL_SECRET", "RecordField", str(field.id))
 
+    # Раскрытие секрета не попадает в историю просмотров — см. rr: выше
     await callback.message.answer(
         f"🔑 {_escape(label)}:\n<code>{_escape(plain)}</code>",
         parse_mode="HTML",

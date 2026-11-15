@@ -8,6 +8,32 @@
 - From this point, all tasks in this project use 3 parallel independent agents + 1 orchestrator (GPT-6 Luna).
 - Agents: deepseek-v4.1-flash (primary executor), claude-haiku-5-5 (independent executor), qwen3.8-flash (validation & optimization).
 
+## 2026-11-15 — Phase 07: Search, Favorites & Recent
+
+### Completed
+
+- Phase 07 completed after Phase 06 GitHub backup verification.
+- Updated `app/services/search/service.py` — permission-aware search with filters (category, type, tags, dates, exact match, multi-word).
+- Updated `app/bot/handlers/search.py` — search in section, filters, pagination.
+- Updated `app/services/favorites/service.py` — favorites with access re-check, pagination.
+- Updated `app/bot/handlers/favorites.py` — favorites list, pagination, add/remove.
+- Updated `app/bot/handlers/records.py` — favorite toggle in card, recent tracking.
+- Updated `app/services/recent/service.py` — recent records with history, access check.
+- Updated `app/bot/handlers/recent.py` — recent list, pagination, clear history.
+- Added tests: `test_search.py`, `test_favorites.py`, `test_recent.py`.
+- Fixed security bug: `is_user_active` now properly awaited in all handlers.
+- Ruff and pytest pass (583 tests); Docker build passed; image has no `.env`.
+
+### Verification
+
+- Commit: pending
+- Pushed to `main`: pending
+- Tag: pending
+
+### Phase status
+
+- Phase 07 implementation complete, pending commit/push/tag/verify.
+
 ## 2026-11-15 — Phase 06: Files & Storage
 
 ### Completed

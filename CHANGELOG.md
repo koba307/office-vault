@@ -66,6 +66,13 @@ All notable changes to this project are documented here.
 - Phase 06: Tests for file metadata, quarantine, versions, access, security, scan (505 tests).
 - Phase 06: Security fix — `is_user_active` now properly awaited in all handlers.
 - Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
+- Phase 07: `app/services/search/service.py` — permission-aware search with filters.
+- Phase 07: `app/bot/handlers/search.py` — search in section, filters, pagination.
+- Phase 07: `app/services/favorites/service.py` — favorites with access re-check, pagination.
+- Phase 07: `app/bot/handlers/favorites.py` — favorites list, pagination, add/remove.
+- Phase 07: `app/services/recent/service.py` — recent records with history, access check.
+- Phase 07: `app/bot/handlers/recent.py` — recent list, pagination, clear history.
+- Phase 07: Tests for search, favorites, recent (583 tests).
 
 ### Fixed
 
