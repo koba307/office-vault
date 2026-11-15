@@ -21,12 +21,12 @@
 |---|---|---|
 | 01 | Project Governance & Baseline | GITHUB_BACKUP_VERIFIED |
 | 02 | Database Model & Alembic Migrations | GITHUB_BACKUP_VERIFIED |
+| 03 | Authentication, Roles, Groups & Permission Service | GITHUB_BACKUP_VERIFIED |
 
 ## Remaining Phases
 
 | Phase | Name | Status |
 |---|---|---|
-| 03 | Authentication, Roles, Groups & Permission Service | NOT_STARTED |
 | 04 | Categories, Dynamic Menus & Navigation | NOT_STARTED |
 | 05 | Records, Dynamic Fields, Versions & Archive | NOT_STARTED |
 | 06 | Files & Storage | NOT_STARTED |
@@ -85,9 +85,9 @@ See `docs/GAP-ANALYSIS.md`.
 |---|---|
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
-| Latest verified phase commit | `a0e4fa0` |
-| Latest remote commit | `a0e4fa0` |
-| Latest verified tag | `v0.2.0-phase-02` |
+| Latest verified phase commit | `fe7aab0` |
+| Latest remote commit | `fe7aab0` |
+| Latest verified tag | `v0.3.0-phase-03` |
 
 ## Known Issues
 

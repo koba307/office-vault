@@ -2,9 +2,9 @@
 
 ## 2026-11-15 — Phase 03: Authentication, Roles, Groups & Permission Service
 
-### Started
+### Completed
 
-- Phase 03 started after Phase 02 GitHub backup verification.
+- Phase 03 completed after Phase 02 GitHub backup verification.
 - Created `app/core/permissions.py` — pure permission logic (decide_access, check_role_permission, matrix).
 - Created `app/core/security.py` — HMAC callback tokens, invite token generation/hashing.
 - Created `app/services/permissions/` package (service, category, record, file, cache, invalidation, invites, context, versions, errors).
@@ -16,10 +16,16 @@
 - Added tests for permission matrix, callback schema, invite tokens.
 - Ruff and pytest pass; Docker build passed; image has no `.env`.
 
-### Current phase status
+### Verification
 
-- Phase 03 is `IN_PROGRESS`.
-- Implementation not yet complete; middleware registration, handler integration, and full tests remain.
+- Commit: `fe7aab0` — `phase-03: implement permission service, middlewares, mixed access and invites`.
+- Pushed to `main`: remote commit matches `fe7aab0`.
+- Tag `v0.3.0-phase-03` created and pushed, points to `fe7aab0`.
+
+### Phase status
+
+- Phase 03 marked `GITHUB_BACKUP_VERIFIED`.
+- Phase 04 ready to begin.
 
 ## 2026-11-15 — Phase 02: Database Model & Alembic Migrations
 
