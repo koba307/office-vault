@@ -27,13 +27,14 @@
 
 ### Verification
 
-- Commit: pending
-- Pushed to `main`: pending
-- Tag: pending
+- Commit: `5a81fb9` — `phase-05: implement records, dynamic fields, versions and archive`.
+- Pushed to `main`: remote commit matches `5a81fb9`.
+- Tag `v0.5.0-phase-05` created and pushed, points to `5a81fb9`.
 
 ### Phase status
 
-- Phase 05 implementation complete, pending commit/push/tag/verify.
+- Phase 05 marked `GITHUB_BACKUP_VERIFIED`.
+- Phase 06 ready to begin.
 
 ## 2026-11-15 — Phase 04: Categories, Dynamic Menus & Navigation
 
