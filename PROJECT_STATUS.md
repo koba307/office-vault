@@ -1,9 +1,9 @@
 # PROJECT STATUS — OFFICE VAULT / MillionersBot
 
 **Last updated:** 2026-11-15  
-**Current phase:** Phase 06 — Files & Storage  
-**Phase status:** IN_PROGRESS
-**Overall status:** Phase 01, 02, 03, 04 and 05 verified; Phase 06 in progress.
+**Current phase:** Phase 07 — Search, Favorites & Recent  
+**Phase status:** NOT_STARTED
+**Overall status:** Phase 01, 02, 03, 04, 05 and 06 verified; Phase 07 ready to begin.
 
 ## Current Phase
 
@@ -28,7 +28,7 @@
 
 | Phase | Name | Status |
 |---|---|---|
-| 06 | Files & Storage | IN_PROGRESS |
+| 06 | Files & Storage | GITHUB_BACKUP_VERIFIED |
 | 07 | Search, Favorites & Recent | NOT_STARTED |
 | 08 | Import & Export | NOT_STARTED |
 | 09 | Administration, Audit, Statistics & Notifications | NOT_STARTED |
@@ -84,9 +84,9 @@ See `docs/GAP-ANALYSIS.md`.
 |---|---|
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
-| Latest verified phase commit | `5a81fb9` |
-| Latest remote commit | `5a81fb9` |
-| Latest verified tag | `v0.5.0-phase-05` |
+| Latest verified phase commit | `2fb38ac` |
+| Latest remote commit | `2fb38ac` |
+| Latest verified tag | `v0.6.0-phase-06` |
 
 ## Known Issues
 

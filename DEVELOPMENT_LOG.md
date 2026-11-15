@@ -26,13 +26,14 @@
 
 ### Verification
 
-- Commit: pending
-- Pushed to `main`: pending
-- Tag: pending
+- Commit: `2fb38ac` — `phase-06: implement files and storage`.
+- Pushed to `main`: remote commit matches `2fb38ac`.
+- Tag `v0.6.0-phase-06` created and pushed, points to `2fb38ac`.
 
 ### Phase status
 
-- Phase 06 implementation complete, pending commit/push/tag/verify.
+- Phase 06 marked `GITHUB_BACKUP_VERIFIED`.
+- Phase 07 ready to begin.
 
 ## 2026-11-15 — Phase 05: Records, Dynamic Fields, Versions & Archive
 
