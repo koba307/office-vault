@@ -45,7 +45,7 @@ async def finish_upload(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await message.answer("Нет доступа")
             await state.clear()
             return
@@ -89,7 +89,7 @@ async def finish_import(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await message.answer("Нет доступа")
             await state.clear()
             return
@@ -111,7 +111,7 @@ async def finish_import(message: Message, state: FSMContext) -> None:
 async def do_export(callback: CallbackQuery) -> None:
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         csv_data = await export_records_csv(session)

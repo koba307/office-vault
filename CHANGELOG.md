@@ -39,6 +39,15 @@ All notable changes to this project are documented here.
 - Phase 03: Mixed Access grants in seed (BOSS access to all categories).
 - Phase 03: Role-based category visibility in `menu.py` and `start.py`.
 - Phase 03: Tests for permission matrix, callback schema, invite tokens.
+- Phase 04: `app/services/categories/service.py` — category CRUD, subcategories, archive, delete.
+- Phase 04: `app/bot/handlers/categories.py` — category management UI.
+- Phase 04: `app/bot/keyboards/pagination.py` — pagination, confirm, cancel keyboards.
+- Phase 04: `app/bot/handlers/navigation.py` — navigation, back, cancel, stale callback handling.
+- Phase 04: Dynamic menus, pagination, sorting, filtering, breadcrumbs in `menu.py`.
+- Phase 04: Search in section, filters, pagination in `search.py`.
+- Phase 04: Role-based menus in `start.py`.
+- Phase 04: Security fix — `is_user_active` now properly awaited in all handlers.
+- Phase 04: Tests for categories, navigation, menus (96 tests).
 
 ### Fixed
 

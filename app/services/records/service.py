@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -84,6 +84,40 @@ async def list_records(
         .limit(limit)
     )
     return list(result.scalars().all())
+
+
+async def list_records_page(
+    session: AsyncSession,
+    category_code: str,
+    *,
+    record_type: RecordType | None = None,
+    sort: str = "date",
+    offset: int = 0,
+    limit: int = 10,
+) -> tuple[list[Record], int]:
+    """Страница активных записей категории и общее количество (для пагинации)."""
+    category = await get_category_by_code(session, category_code)
+    if not category:
+        return [], 0
+
+    conditions = [Record.category_id == category.id, Record.status == "ACTIVE"]
+    if record_type is not None:
+        conditions.append(Record.record_type == record_type)
+
+    total = await session.scalar(select(func.count()).select_from(Record).where(*conditions))
+
+    order = (
+        func.lower(Record.title).asc() if sort == "name" else Record.created_at.desc()
+    )
+    result = await session.execute(
+        select(Record)
+        .where(*conditions)
+        .options(selectinload(Record.fields))
+        .order_by(order, Record.id)
+        .offset(offset)
+        .limit(limit)
+    )
+    return list(result.scalars().all()), total or 0
 
 
 async def create_record(

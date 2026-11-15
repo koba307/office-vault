@@ -1,42 +1,86 @@
+import html
+
 from aiogram import Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 from app.bot.handlers.menu import get_main_menu_keyboard
-from app.core.config import settings
+from app.database.models import RoleCode, User, UserStatus
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
 
 router = Router()
 
+ROLE_TITLES = {
+    RoleCode.SUPERADMIN.value: "Суперадминистратор",
+    RoleCode.BOSS.value: "Руководитель",
+    RoleCode.EMPLOYEE.value: "Сотрудник",
+}
+
+
+def role_title(role: RoleCode | str | None) -> str:
+    """Человекочитаемое название роли для приветствия."""
+    value = getattr(role, "value", role)
+    return ROLE_TITLES.get(str(value), "Сотрудник")
+
+
+def invitation_text(user_id: int, name: str) -> str:
+    """Сообщение для незарегистрированного пользователя: меню не показывается."""
+    return (
+        "🏢 <b>OFFICE VAULT</b>\n\n"
+        f"Здравствуйте, {name}.\n"
+        f"Ваш Telegram ID: <code>{user_id}</code>\n\n"
+        "Доступ предоставляется только зарегистрированным сотрудникам.\n"
+        "Обратитесь к руководителю или суперадминистратору, чтобы вас добавили\n"
+        "в систему и выдали права на рабочие разделы."
+    )
+
+
+def pending_text(name: str) -> str:
+    return (
+        "🏢 <b>OFFICE VAULT</b>\n\n"
+        f"Здравствуйте, {name}.\n\n"
+        "Ваша учётная запись создана и ожидает активации администратором.\n"
+        "Повторите /start позже."
+    )
+
+
+def blocked_text(name: str) -> str:
+    return (
+        "🏢 <b>OFFICE VAULT</b>\n\n"
+        f"Здравствуйте, {name}.\n\n"
+        "Доступ к системе заблокирован.\n"
+        "Обратитесь к суперадминистратору."
+    )
+
+
+def welcome_text(name: str, user: User) -> str:
+    """Приветствие активного сотрудника: роль показывается по-человечески."""
+    return (
+        "🏢 <b>OFFICE VAULT</b>\n\n"
+        f"Добро пожаловать, {name}.\n"
+        f"Роль: <b>{role_title(user.role)}</b>\n\n"
+        "Выберите рабочий раздел:"
+    )
+
 
 @router.message(CommandStart())
 async def cmd_start(message: Message) -> None:
     user_id = message.from_user.id
-    name = message.from_user.full_name or "сотрудник"
+    name = html.escape(message.from_user.full_name or "сотрудник")
 
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, user_id)
 
-    is_superadmin = user_id == settings.superadmin_telegram_id or (user and user.role.value == "SUPERADMIN")
+    if user is not None and await is_user_active(user):
+        # Меню строится по роли и правам: EMPLOYEE / BOSS / SUPERADMIN
+        kb = await get_main_menu_keyboard(user=user)
+        await message.answer(welcome_text(name, user), reply_markup=kb)
+        return
 
-    if user and is_user_active(user):
-        role_text = user.role.value if user else "EMPLOYEE"
-        text = (
-            f"🏢 <b>OFFICE VAULT</b>\n\n"
-            f"Добро пожаловать, {name}.\n"
-            f"Роль: <b>{role_text}</b>\n\n"
-            f"Выберите рабочий раздел:"
-        )
-        kb = await get_main_menu_keyboard(user=user, is_admin=is_superadmin)
+    if user is not None and user.status == UserStatus.PENDING:
+        await message.answer(pending_text(name))
+    elif user is not None:
+        await message.answer(blocked_text(name))
     else:
-        text = (
-            f"🏢 <b>OFFICE VAULT</b>\n\n"
-            f"Добро пожаловать, {name}.\n"
-            f"Ваш Telegram ID: <code>{user_id}</code>\n\n"
-            f"Доступ предоставляется только зарегистрированным сотрудникам.\n"
-            f"Обратитесь к администратору для добавления в систему."
-        )
-        kb = None
-
-    await message.answer(text, reply_markup=kb)
+        await message.answer(invitation_text(user_id, name))

@@ -29,9 +29,11 @@ async def main() -> None:
 
     from app.bot.handlers import (
         admin,
+        categories,
         favorites,
         files,
         menu,
+        navigation,
         profile,
         recent,
         records,
@@ -46,7 +48,9 @@ async def main() -> None:
     # Middleware stack: throttling → auth → permissions → audit
     for router in (
         start.router,
+        navigation.router,
         menu.router,
+        categories.router,
         records.router,
         search.router,
         favorites.router,
@@ -54,6 +58,7 @@ async def main() -> None:
         files.router,
         recent.router,
         profile.router,
+        navigation.stale_router,
     ):
         router.message.middleware(ThrottlingMiddleware())
         router.message.middleware(AuthMiddleware())
@@ -65,7 +70,9 @@ async def main() -> None:
         router.callback_query.middleware(AuditMiddleware())
 
     dp.include_router(start.router)
+    dp.include_router(navigation.router)
     dp.include_router(menu.router)
+    dp.include_router(categories.router)
     dp.include_router(records.router)
     dp.include_router(search.router)
     dp.include_router(favorites.router)
@@ -73,6 +80,7 @@ async def main() -> None:
     dp.include_router(files.router)
     dp.include_router(recent.router)
     dp.include_router(profile.router)
+    dp.include_router(navigation.stale_router)
 
     logger.info("Starting OFFICE VAULT bot...")
     await dp.start_polling(bot)

@@ -8,6 +8,29 @@
 - From this point, all tasks in this project use 3 parallel independent agents + 1 orchestrator (GPT-6 Luna).
 - Agents: deepseek-v4.1-flash (primary executor), claude-haiku-5-5 (independent executor), qwen3.8-flash (validation & optimization).
 
+## 2026-11-15 — Phase 04: Categories, Dynamic Menus & Navigation
+
+### Started
+
+- Phase 04 started after Phase 03 GitHub backup verification.
+- Created `app/services/categories/service.py` — category CRUD, subcategories, archive, delete.
+- Created `app/bot/handlers/categories.py` — category management UI.
+- Created `app/bot/keyboards/pagination.py` — pagination, confirm, cancel keyboards.
+- Created `app/bot/handlers/navigation.py` — navigation, back, cancel, stale callback handling.
+- Updated `app/bot/handlers/menu.py` — dynamic menus, pagination, sorting, filtering, breadcrumbs.
+- Updated `app/bot/handlers/records.py` — record list pagination, permission checks.
+- Updated `app/bot/handlers/search.py` — search in section, filters, pagination.
+- Updated `app/bot/handlers/start.py` — role-based menus.
+- Updated `app/bot/main.py` — connected categories and navigation routers.
+- Added tests: `test_categories.py`, `test_navigation.py`, `test_menus.py`.
+- Fixed security bug: `is_user_active` now properly awaited in all handlers.
+- Ruff and pytest pass (96 tests); Docker build passed; image has no `.env`.
+
+### Current phase status
+
+- Phase 04 is `IN_PROGRESS`.
+- Implementation complete, pending final review and GitHub backup.
+
 ## 2026-11-15 — Phase 03: Authentication, Roles, Groups & Permission Service
 
 ### Completed

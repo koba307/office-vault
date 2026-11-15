@@ -12,7 +12,7 @@ router = Router()
 async def recent_list(callback: CallbackQuery) -> None:
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         records = await list_recent_records(session, user)

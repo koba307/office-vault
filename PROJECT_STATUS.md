@@ -1,9 +1,9 @@
 # PROJECT STATUS — OFFICE VAULT / MillionersBot
 
 **Last updated:** 2026-11-15  
-**Current phase:** Phase 03 — Authentication, Roles, Groups & Permission Service  
+**Current phase:** Phase 04 — Categories, Dynamic Menus & Navigation  
 **Phase status:** IN_PROGRESS
-**Overall status:** Phase 01 and Phase 02 verified; Phase 03 started.
+**Overall status:** Phase 01, 02 and 03 verified; Phase 04 in progress.
 
 ## Current Phase
 
@@ -22,12 +22,13 @@
 | 01 | Project Governance & Baseline | GITHUB_BACKUP_VERIFIED |
 | 02 | Database Model & Alembic Migrations | GITHUB_BACKUP_VERIFIED |
 | 03 | Authentication, Roles, Groups & Permission Service | GITHUB_BACKUP_VERIFIED |
+| 04 | Categories, Dynamic Menus & Navigation | IN_PROGRESS |
 
 ## Remaining Phases
 
 | Phase | Name | Status |
 |---|---|---|
-| 04 | Categories, Dynamic Menus & Navigation | NOT_STARTED |
+| 04 | Categories, Dynamic Menus & Navigation | IN_PROGRESS |
 | 05 | Records, Dynamic Fields, Versions & Archive | NOT_STARTED |
 | 06 | Files & Storage | NOT_STARTED |
 | 07 | Search, Favorites & Recent | NOT_STARTED |

@@ -2,6 +2,7 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+from app.bot.handlers.menu import SORT_DATE, render_records_list
 from app.bot.states.add_record import AddRecord, EditRecord
 from app.core.encryption import decrypt_secret
 from app.database.models import RecordType, RoleCode
@@ -10,30 +11,16 @@ from app.services.auth.permissions import (
     get_user_by_telegram_id,
     is_user_active,
     log_audit,
-    user_can_access_category,
 )
 from app.services.records.service import (
     archive_record,
     create_record,
     get_record,
-    list_records,
     soft_delete_record,
     update_record,
 )
 
 router = Router()
-
-
-def _type_title(rec_type: str) -> str:
-    return {
-        "CREDENTIALS": "🔐 Логины и пароли",
-        "SIP": "☎️ SIP и телефония",
-        "LINKS": "🔗 Ссылки",
-        "SETTINGS": "⚙️ Настройки",
-        "INSTRUCTIONS": "📚 Инструкции",
-        "FILES": "📁 Файлы и документы",
-        "OTHER": "🗂 Прочее",
-    }.get(rec_type.upper(), rec_type)
 
 
 @router.callback_query(F.data.startswith("type:"))
@@ -46,38 +33,13 @@ async def type_callback(callback: CallbackQuery) -> None:
     rec_type = parts[1].upper()
     category = parts[2]
 
-    async with async_session() as session:
-        user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
-            await callback.answer("Нет доступа", show_alert=True)
-            return
-        if not await user_can_access_category(session, user, category):
-            await callback.answer("Нет доступа к разделу", show_alert=True)
-            return
+    try:
+        RecordType(rec_type)
+    except ValueError:
+        await callback.answer("Неизвестный тип")
+        return
 
-        try:
-            rtype = RecordType(rec_type)
-        except ValueError:
-            await callback.answer("Неизвестный тип")
-            return
-
-        records = await list_records(session, category, rtype)
-
-    lines = [f"{_type_title(rec_type)}\n\nРаздел: {category}\n"]
-    buttons = []
-    if not records:
-        lines.append("Записей пока нет.")
-    else:
-        for r in records:
-            lines.append(f"• {r.title}")
-            buttons.append([InlineKeyboardButton(text=f"📄 {r.title}", callback_data=f"record:view:{r.id}")])
-
-    if user and user.role in (RoleCode.SUPERADMIN, RoleCode.BOSS):
-        buttons.append([InlineKeyboardButton(text="➕ Добавить запись", callback_data=f"record:add:{rec_type}:{category}")])
-    buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=f"menu:category:{category}")])
-
-    await callback.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
-    await callback.answer()
+    await render_records_list(callback, category, rec_type, SORT_DATE, 0)
 
 
 @router.callback_query(F.data.startswith("record:add:"))
@@ -199,7 +161,7 @@ async def view_record(callback: CallbackQuery) -> None:
     rid = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         from uuid import UUID
@@ -223,8 +185,8 @@ async def view_record(callback: CallbackQuery) -> None:
         buttons.append([InlineKeyboardButton(text="⬇️ Скачать файл", callback_data=f"record:download:{record.id}")])
     if user and user.role in (RoleCode.SUPERADMIN, RoleCode.BOSS):
         buttons.append([InlineKeyboardButton(text="✏️ Редактировать", callback_data=f"record:edit:{record.id}")])
-        buttons.append([InlineKeyboardButton(text="🗄 Архивировать", callback_data=f"record:archive:{record.id}")])
-        buttons.append([InlineKeyboardButton(text="🗑 Удалить", callback_data=f"record:delete:{record.id}")])
+        buttons.append([InlineKeyboardButton(text="🗄 Архивировать", callback_data=f"menu:ask:archive:{record.id}")])
+        buttons.append([InlineKeyboardButton(text="🗑 Удалить", callback_data=f"menu:ask:delete:{record.id}")])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
 
     await callback.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
@@ -236,7 +198,7 @@ async def download_file(callback: CallbackQuery) -> None:
     rid = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         from uuid import UUID
@@ -284,7 +246,7 @@ async def reveal_secret(callback: CallbackQuery) -> None:
     rid, fid = parts[2], parts[3]
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         from uuid import UUID

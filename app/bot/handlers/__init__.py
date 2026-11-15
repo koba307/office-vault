@@ -1,3 +1,27 @@
-from app.bot.handlers import admin, favorites, files, menu, profile, recent, records, search, start
+from app.bot.handlers import (
+    admin,
+    categories,
+    favorites,
+    files,
+    menu,
+    navigation,
+    profile,
+    recent,
+    records,
+    search,
+    start,
+)
 
-__all__ = ["admin", "favorites", "files", "menu", "profile", "recent", "records", "search", "start"]
+__all__ = [
+    "admin",
+    "categories",
+    "favorites",
+    "files",
+    "menu",
+    "navigation",
+    "profile",
+    "recent",
+    "records",
+    "search",
+    "start",
+]

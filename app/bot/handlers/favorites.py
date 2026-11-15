@@ -13,7 +13,7 @@ async def add_fav(callback: CallbackQuery) -> None:
     rid = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         from uuid import UUID
@@ -25,7 +25,7 @@ async def add_fav(callback: CallbackQuery) -> None:
 async def list_fav(callback: CallbackQuery) -> None:
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not is_user_active(user):
+        if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
         favs = await list_favorites(session, user.id)
