@@ -2,15 +2,15 @@
 
 **Last updated:** 2026-11-15  
 **Current phase:** Phase 02 — Database Model & Alembic Migrations  
-**Phase status:** TESTING
-**Overall status:** Phase 01 verified; Phase 02 implementation is under final validation.
+**Phase status:** BLOCKED
+**Overall status:** Phase 01 verified; Phase 02 passes validation but awaits a verified GitHub backup.
 
 ## Current Phase
 
 | Field | Value |
 |---|---|
 | Phase | 02 — Database Model & Alembic Migrations |
-| Status | TESTING |
+| Status | BLOCKED |
 | Started | 2026-11-15 |
 | Depends on | Phase 01 (verified) |
 | Next phase | 03 — Authentication, Roles, Groups & Permission Service |
@@ -85,13 +85,14 @@ See `docs/GAP-ANALYSIS.md`.
 | Repository | `koba307/office-vault` |
 | Branch | `main` |
 | Latest verified phase commit | `1a5cfc3` |
+| Latest local commit | `36ca3c8` |
 | Latest remote commit | `df4504f` |
 | Latest verified tag | `v0.1.0-phase-01` |
 
 ## Known Issues
 
 - TZ v2.0 has many unimplemented features (see gap analysis).
-- Phase 02 changes are not yet committed/pushed/tagged.
+- Phase 02 commit `36ca3c8` is local but cannot be pushed until GitHub authentication is configured securely.
 - Permission model does not support record/file-level access.
 - No full test suite.
 - No backup/restore for PostgreSQL/MinIO.
@@ -100,11 +101,11 @@ See `docs/GAP-ANALYSIS.md`.
 - Secrets are sent in ordinary Telegram messages.
 - MinIO image unavailable in this environment; RustFS is used as S3-compatible replacement.
 - Previously disclosed bot/GitHub/SSH credentials must be rotated. New image builds exclude `.env`, but running containers were not recreated during Phase 02.
-- GitHub push is pending secure re-authentication; do not reuse the previously disclosed PAT.
+- Do not reuse the previously disclosed GitHub PAT; revoke it and authenticate with GitHub CLI/credential manager.
 
 ## Next Planned Actions
 
-1. Review all Phase 02 changes and update docs.
-2. Commit Phase 02 locally and attempt the GitHub push.
-3. Create `v0.2.0-phase-02` only after the push and remote commit are verified.
+1. Revoke/rotate the previously disclosed credentials; keep the existing encryption master key until encrypted data has a re-encryption plan.
+2. Configure GitHub authentication securely (for example, `gh auth login`; do not paste a new token into chat).
+3. Push local `main`, create `v0.2.0-phase-02`, and verify the remote commit and tag.
 4. Do not start Phase 03 before remote backup verification.

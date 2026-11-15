@@ -67,7 +67,7 @@ Based on `docs/TZ.md` v2.0 and `docs/DEVELOPMENT_WORKFLOW.md`.
 
 ## Phase 02 — Database Model & Alembic Migrations
 
-**Status:** TESTING
+**Status:** BLOCKED
 
 ### Objectives
 
