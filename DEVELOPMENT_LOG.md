@@ -54,7 +54,7 @@
 - Phase 02 implementation, tests, docs, and local commit are complete.
 - Local commit: `36ca3c8` — `phase-02: implement database model and alembic migrations`.
 - Push attempts for the implementation and follow-up status commits failed because no GitHub credentials are configured (`could not read Username`).
-- A local documentation commit records this backup blocker; it is also unpushed.
+- A local documentation commit records this backup blocker at `8d8376f`; it is also unpushed.
 - No Phase 02 tag was created because the remote backup is not verified.
 - Phase status is `BLOCKED`; configure GitHub auth securely, push, verify, and
   tag before Phase 03. Do not reuse the previously disclosed personal access token.
