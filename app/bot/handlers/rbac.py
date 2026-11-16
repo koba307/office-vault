@@ -1,9 +1,9 @@
+import logging
 from uuid import UUID
 
-import logging
-
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.database.models import Role, User
 from app.database.session import async_session
@@ -172,6 +172,7 @@ async def rbac_toggle_category(callback: CallbackQuery) -> None:
 
 
 from aiogram.filters import Command
+
 
 @router.message(Command("rbac"))
 async def rbac_command(message: Message, state: FSMContext) -> None:
