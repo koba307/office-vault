@@ -5,7 +5,7 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.database.models import Category, Record
+from app.database.models import AccessMode, Category, CategoryPermission, Record
 
 # Статусы, которые допускает управление категориями.
 CATEGORY_STATUSES = frozenset({"ACTIVE", "DISABLED", "ARCHIVED"})
@@ -168,6 +168,9 @@ async def create_category(
         status="ACTIVE",
     )
     session.add(category)
+    await session.flush()
+    if resolved_parent is None:
+        session.add(CategoryPermission(category_id=category.id, access_mode=AccessMode.ALL_EMPLOYEES))
     try:
         await session.commit()
     except IntegrityError as exc:
@@ -253,6 +256,9 @@ async def delete_category(session: AsyncSession, category_id: UUID | str) -> Non
             f"В категории есть записи ({records}). Архивируйте её вместо удаления."
         )
 
+    from sqlalchemy import delete as _delete
+
+    await session.execute(_delete(CategoryPermission).where(CategoryPermission.category_id == category.id))
     try:
         await session.delete(category)
         await session.commit()
