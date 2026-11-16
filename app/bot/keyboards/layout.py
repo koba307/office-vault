@@ -55,6 +55,14 @@ def smart_layout(rows: list[list] | list) -> list[list]:
             result.append([btn])
             continue
         width = len(text or "") + 2
+        # Длинные подписи всегда на отдельной строке.
+        if len(text or "") > 24:
+            if current:
+                result.append(current)
+                current = []
+                current_width = 0
+            result.append([btn])
+            continue
         if current and current_width + width > 44:
             result.append(current)
             current = []
