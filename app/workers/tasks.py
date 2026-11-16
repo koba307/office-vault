@@ -45,6 +45,15 @@ async def backup_records(ctx) -> str:
         return f"Backup saved locally (MinIO unavailable): {e}"
 
 
+async def cleanup_expired_exports(ctx) -> str:
+    """Удаляет из хранилища готовые экспорты, срок хранения которых истёк (Phase 08)."""
+    from app.services.import_export.export_jobs import purge_expired_exports
+
+    async with async_session() as session:
+        purged = await purge_expired_exports(session)
+    return f"Expired exports purged: {purged}"
+
+
 async def cleanup_archived(ctx) -> str:
     """Hard-delete records archived more than 30 days ago."""
     from datetime import timedelta

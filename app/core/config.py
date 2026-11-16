@@ -37,5 +37,8 @@ class Settings(BaseSettings):
     zip_max_ratio: float | None = None
     zip_max_uncompressed: int | None = None
 
+    # Экспорт (Phase 08): срок хранения готового файла в хранилище, часы
+    export_retention_hours: int = 24
+
 
 settings = Settings()

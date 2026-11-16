@@ -101,7 +101,7 @@ BOSS_TOOLS: tuple[MenuTool, ...] = (
         "📂 Управление категориями", "category:manage", PermissionCode.MANAGE_CATEGORIES.value
     ),
     MenuTool("📎 Управление файлами", "menu:files", PermissionCode.UPLOAD.value),
-    MenuTool("📥 Импорт", "import:csv", PermissionCode.IMPORT.value),
+    MenuTool("📥 Импорт", "import:start", PermissionCode.IMPORT.value),
     MenuTool("📤 Экспорт", "export:csv", PermissionCode.EXPORT.value),
     MenuTool("🗃 Архив", "menu:archive", PermissionCode.ARCHIVE.value),
     MenuTool("⭐ Избранное", "favorites:list"),
@@ -653,7 +653,7 @@ async def menu_files(callback: CallbackQuery) -> None:
         return
     rows = [
         [InlineKeyboardButton(text="📤 Загрузить файл", callback_data="files:upload")],
-        [InlineKeyboardButton(text="📥 Импорт CSV", callback_data="import:csv")],
+        [InlineKeyboardButton(text="📥 Импорт записей", callback_data="import:start")],
         [InlineKeyboardButton(text="📤 Экспорт CSV", callback_data="export:csv")],
     ]
     await _screen(callback, "📎 Управление файлами", ["Выберите действие:"], extra_rows=rows)

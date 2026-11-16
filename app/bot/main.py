@@ -31,8 +31,10 @@ async def main() -> None:
         admin,
         archive,
         categories,
+        export,
         favorites,
         files,
+        import_export,
         menu,
         navigation,
         profile,
@@ -57,7 +59,9 @@ async def main() -> None:
         search.router,
         favorites.router,
         admin.router,
+        import_export.router,
         files.router,
+        export.router,
         recent.router,
         profile.router,
         navigation.stale_router,
@@ -82,7 +86,9 @@ async def main() -> None:
     dp.include_router(search.router)
     dp.include_router(favorites.router)
     dp.include_router(admin.router)
+    dp.include_router(import_export.router)
     dp.include_router(files.router)
+    dp.include_router(export.router)
     dp.include_router(recent.router)
     dp.include_router(profile.router)
     dp.include_router(navigation.stale_router)

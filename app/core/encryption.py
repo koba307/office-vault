@@ -34,3 +34,15 @@ def decrypt_secret(encrypted: str) -> str:
     nonce, ciphertext = raw[:12], raw[12:]
     plaintext = aesgcm.decrypt(nonce, ciphertext, None)
     return plaintext.decode("utf-8")
+
+
+def encrypt_bytes(plaintext: bytes) -> bytes:
+    """Шифрует произвольные байты (например, файл экспорта). Возвращает nonce + ciphertext + tag."""
+    nonce = os.urandom(12)
+    return nonce + AESGCM(get_master_key()).encrypt(nonce, bytes(plaintext), None)
+
+
+def decrypt_bytes(blob: bytes) -> bytes:
+    """Расшифровывает байты, зашифрованные encrypt_bytes. Подмена данных даёт InvalidTag."""
+    raw = bytes(blob)
+    return AESGCM(get_master_key()).decrypt(raw[:12], raw[12:], None)

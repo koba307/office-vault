@@ -44,7 +44,6 @@ from app.services.files.versions import (
     replace_file,
     restore_file_version,
 )
-from app.services.import_export.service import export_records_csv
 from app.services.permissions import PermissionDenied, PermissionService
 from app.services.permissions.service import DENY_MESSAGES, TARGET_FILE
 
@@ -614,18 +613,3 @@ async def finish_import(message: Message, state: FSMContext) -> None:
         except Exception as e:  # noqa: BLE001
             await message.answer(f"Ошибка импорта: {e}")
     await state.clear()
-
-
-@router.callback_query(F.data == "export:csv")
-async def do_export(callback: CallbackQuery) -> None:
-    async with async_session() as session:
-        user = await get_user_by_telegram_id(session, callback.from_user.id)
-        if not await is_user_active(user):
-            await callback.answer("Нет доступа", show_alert=True)
-            return
-        csv_data = await export_records_csv(session)
-    await callback.message.answer_document(
-        BufferedInputFile(csv_data.encode(), filename="office_vault_export.csv"),
-        caption="Экспорт записей",
-    )
-    await callback.answer()

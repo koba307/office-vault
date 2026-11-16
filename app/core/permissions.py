@@ -26,6 +26,7 @@ class PermissionAction(str, enum.Enum):
     DOWNLOAD = "DOWNLOAD"
     UPLOAD = "UPLOAD"
     EXPORT = "EXPORT"
+    EXPORT_SECRETS = "EXPORT_SECRETS"
     IMPORT = "IMPORT"
     MANAGE_ACCESS = "MANAGE_ACCESS"
     MANAGE_USERS = "MANAGE_USERS"
@@ -71,6 +72,7 @@ _BOSS_ACTIONS = _EMPLOYEE_ACTIONS | frozenset(
         PermissionAction.RESTORE,
         PermissionAction.UPLOAD,
         PermissionAction.EXPORT,
+        PermissionAction.EXPORT_SECRETS,
         PermissionAction.IMPORT,
         PermissionAction.MANAGE_ACCESS,
         PermissionAction.MANAGE_CATEGORIES,

@@ -109,6 +109,7 @@ class PermissionCode(str, enum.Enum):
     DOWNLOAD = "DOWNLOAD"
     UPLOAD = "UPLOAD"
     EXPORT = "EXPORT"
+    EXPORT_SECRETS = "EXPORT_SECRETS"
     IMPORT = "IMPORT"
     MANAGE_ACCESS = "MANAGE_ACCESS"
     MANAGE_USERS = "MANAGE_USERS"
@@ -753,6 +754,8 @@ class ExportJob(Base):
     file_id: Mapped[UUID | None] = mapped_column(
         PGUUID(as_uuid=True), ForeignKey("files.id"), nullable=True
     )
+    # Phase 08: прогресс фонового экспорта и служебные флаги (cancel_requested).
+    progress: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 

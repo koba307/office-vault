@@ -440,8 +440,14 @@ async def create_record(
     attachments: Sequence[Any] | None = None,
     access_mode: AccessMode | str | None = None,
     group_codes: Sequence[str] | None = None,
+    commit: bool = True,
 ) -> Record:
-    """Создаёт запись со всеми типами динамических полей."""
+    """Создаёт запись со всеми типами динамических полей.
+
+    ``commit=False`` откладывает фиксацию: вызывающий код (например,
+    фоновый импорт Phase 08) управляет транзакцией сам и может откатить
+    все строки до коммита.
+    """
     category = await get_category_by_code(session, category_code)
     if not category:
         raise RecordValidationError(f"Категория {category_code} не найдена.")
@@ -537,7 +543,8 @@ async def create_record(
         session, record.id, access_mode=mode, group_codes=group_codes
     )
 
-    await session.commit()
+    if commit:
+        await session.commit()
     return await get_record(session, record.id) or record
 
 
