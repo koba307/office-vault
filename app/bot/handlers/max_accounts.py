@@ -134,7 +134,10 @@ async def max_upload_file(message: Message, state: FSMContext) -> None:
         try:
             file = await message.bot.get_file(document.file_id)
             data = await message.bot.download_file(file.file_path)
-            count = await upload_max_accounts(session, user, bytes(data), filename)
+            if hasattr(data, "read"):
+                data = data.read()
+            payload = data if isinstance(data, bytes) else bytes(data)
+            count = await upload_max_accounts(session, user, payload, filename)
         except ValueError as exc:
             await message.answer(str(exc))
             return
