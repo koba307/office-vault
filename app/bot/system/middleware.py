@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import logging
+
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -13,6 +15,9 @@ from .process import ProcessManager
 from .progress import ProgressManager
 
 
+logger = logging.getLogger(__name__)
+
+
 class SystemMiddleware(BaseMiddleware):
     def __init__(self) -> None:
         self.navigation = NavigationManager()
@@ -22,6 +27,12 @@ class SystemMiddleware(BaseMiddleware):
         self.lifecycle = MessageLifecycleManager()
 
     async def __call__(self, handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]], event: TelegramObject, data: dict[str, Any]) -> Any:
+        from aiogram.types import CallbackQuery, Message
+        if isinstance(event, CallbackQuery):
+            logger.info("SYSTEM callback: %s from %s", event.data, event.from_user.id if event.from_user else None)
+        elif isinstance(event, Message):
+            logger.info("SYSTEM message: %r from %s", event.text, event.from_user.id if event.from_user else None)
+        print("MIDDLEWARE CALLED", type(event).__name__, getattr(event, "data", None), flush=True)
         data["system"] = self
         data["navigation"] = self.navigation
         data["confirmation"] = self.confirmation

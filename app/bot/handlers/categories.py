@@ -115,7 +115,7 @@ async def category_manage(callback: CallbackQuery) -> None:
             row.append(
                 InlineKeyboardButton(
                     text="🔐",
-                    callback_data=f"rbac:category:{root.code}",
+                    callback_data=f"rbac:c:{root.code}",
                 )
             )
             row.append(

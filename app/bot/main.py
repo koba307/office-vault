@@ -25,7 +25,9 @@ async def main() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     storage = RedisStorage.from_url(settings.redis_url)
+    print("AFTER STORAGE", flush=True)
     dp = Dispatcher(storage=storage)
+    print("AFTER DISPATCHER", flush=True)
 
     from app.bot.handlers import (
         admin,
@@ -49,6 +51,7 @@ async def main() -> None:
         backup as backup_handler,
     )
     from app.bot.middlewares.audit import AuditMiddleware
+    print("IMPORTS DONE", flush=True)
     from app.bot.middlewares.auth import AuthMiddleware
     from app.bot.middlewares.permissions import PermissionMiddleware
     from app.bot.middlewares.throttling import ThrottlingMiddleware
@@ -102,8 +105,10 @@ async def main() -> None:
     dp.include_router(profile.router)
     dp.include_router(navigation.stale_router)
 
+    print("BEFORE MW", flush=True)
     dp.update.middleware(SystemMiddleware())
-    logger.info("Starting OFFICE VAULT bot...")
+    print("AFTER MW", flush=True)
+    print("STARTING BOT NOW", flush=True)
     await dp.start_polling(bot)
 
 

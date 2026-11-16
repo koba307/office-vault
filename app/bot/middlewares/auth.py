@@ -29,6 +29,7 @@ class AuthMiddleware(BaseMiddleware):
 
         if telegram_id is None:
             return await handler(event, data)
+        print("AUTH MIDDLEWARE CALLED", telegram_id, type(event).__name__, getattr(event, "data", None), flush=True)
 
         async with async_session() as session:
             user = await get_user_by_telegram_id(session, telegram_id)
