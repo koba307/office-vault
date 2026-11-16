@@ -6,7 +6,6 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
 from app.services.backup.service import create_backup, list_backups, verify_backup
-from app.services.permissions import PermissionCode
 
 router = Router()
 
