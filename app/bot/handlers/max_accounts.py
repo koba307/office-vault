@@ -42,7 +42,7 @@ def _markup(rows):
     return InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
-@router.callback_query(F.data.in_({"max:menu", "category:view:max"}))
+@router.callback_query(F.data.in_({"max:menu", "category:view:max", "menu:category:max"}))
 async def max_menu(callback: CallbackQuery) -> None:
     async with async_session() as session:
         user = await _user_active(session, callback.from_user.id)

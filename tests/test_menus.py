@@ -41,10 +41,7 @@ TZ_SUPERADMIN_LABELS = [
     "📋 Полный аудит",
     "💾 Резервные копии",
     "🔐 Безопасность",
-    "⚙️ Настройки системы",
-    "🖥 Состояние сервисов",
     "📥 Заявки на регистрацию",
-    "🧰 Администрирование",
 ]
 
 
@@ -57,15 +54,14 @@ def _labels(sections: list[list[MenuTool]]) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
-def test_employee_menu_matches_tz():
+def test_employee_menu_has_only_categories():
     sections = role_menu_sections(RoleCode.EMPLOYEE, ALL_SYSTEM_PERMISSIONS)
-    assert len(sections) == 1
-    assert [tool.text for tool in sections[0]] == [tool.text for tool in EMPLOYEE_TOOLS]
+    assert sections == []
 
 
 def test_employee_role_none_falls_back_to_base_tools():
     # Незарегистрированный или повреждённый контекст не должен получать инструменты BOSS
-    assert role_menu_sections(None) == [list(EMPLOYEE_TOOLS)]
+    assert role_menu_sections(None) == []
 
 
 def test_boss_menu_with_full_permissions_matches_tz():
@@ -129,12 +125,11 @@ def test_superadmin_sections_filter_independently():
     assert "🛡 Роли и доступы" not in admin_labels
     assert "💾 Резервные копии" not in admin_labels
     assert "⚙️ Настройки системы" not in admin_labels
-    # Хаб остаётся: внутренние ссылки фильтруются по тем же правам
-    assert "🧰 Администрирование" in admin_labels
+    assert "🧰 Администрирование" not in admin_labels
 
 
 def test_sections_are_never_empty_lists():
-    for role in (RoleCode.EMPLOYEE, RoleCode.BOSS, RoleCode.SUPERADMIN, None):
+    for role in (RoleCode.EMPLOYEE, RoleCode.BOSS, RoleCode.COACH, RoleCode.SUPERADMIN, None):
         for allowed in (set(), ALL_SYSTEM_PERMISSIONS):
             assert all(section for section in role_menu_sections(role, allowed))
 

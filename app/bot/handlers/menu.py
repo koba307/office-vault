@@ -133,11 +133,7 @@ SUPERADMIN_TOOLS: tuple[MenuTool, ...] = (
     MenuTool("📋 Полный аудит", "menu:audit", PermissionCode.VIEW_AUDIT.value),
     MenuTool("💾 Резервные копии", "menu:backup", PermissionCode.MANAGE_BACKUP.value),
     MenuTool("🔐 Безопасность", "menu:security", PermissionCode.MANAGE_SYSTEM.value),
-    MenuTool("⚙️ Настройки системы", "menu:settings", PermissionCode.MANAGE_SYSTEM.value),
-    MenuTool("🖥 Состояние сервисов", "menu:status", PermissionCode.MANAGE_SYSTEM.value),
     MenuTool("📥 Заявки на регистрацию", "reg:list", PermissionCode.MANAGE_USERS.value),
-    # Хаб администрирования виден всегда: ссылки внутри фильтруются по правам
-    MenuTool("🧰 Администрирование", "menu:admin"),
 )
 
 MANAGER_ROLES = (RoleCode.BOSS, RoleCode.SUPERADMIN)
@@ -162,7 +158,7 @@ def role_menu_sections(role: RoleCode | None, allowed: set[str] | None = None) -
     elif role == RoleCode.BOSS:
         sections = [_visible_tools(BOSS_TOOLS, allowed)]
     else:
-        sections = [list(EMPLOYEE_TOOLS)]
+        sections = []
     return [section for section in sections if section]
 
 
@@ -284,25 +280,23 @@ async def get_main_menu_keyboard(
 
     if user is not None:
         async with async_session() as session:
-            # Показываем только доступные категории
-            categories = await list_categories(session)
-            for cat in categories:
-                if await PermissionService.can(user, "VIEW", "category", cat.id, session):
-                    buttons.append(
-                        [
-                            InlineKeyboardButton(
-                                text=f"{category_emoji(cat.code)} {cat.name}",
-                                callback_data=f"menu:category:{cat.code}",
-                            )
-                        ]
-                    )
-            # Быстрый доступ к подкатегории MAX внутри «2й Этап».
-            max_category = await get_category(session, "max")
-            if max_category is not None and await PermissionService.can(
-                user, "VIEW", "category", max_category.id, session
-            ):
+            # Показываем все доступные группы и подгруппы (не только корневые).
+            all_categories = (
+                await session.execute(select(Category).order_by(Category.sort_order, Category.name))
+            ).scalars().all()
+            for cat in all_categories:
+                if cat.status != "ACTIVE":
+                    continue
+                if not await PermissionService.can(user, "VIEW", "category", cat.id, session):
+                    continue
+                prefix = "📂 " if cat.parent_id is not None else ""
                 buttons.append(
-                    [InlineKeyboardButton(text="📦 MAX", callback_data="max:menu")]
+                    [
+                        InlineKeyboardButton(
+                            text=f"{prefix}{category_emoji(cat.code)} {cat.name}",
+                            callback_data=f"menu:category:{cat.code}",
+                        )
+                    ]
                 )
             allowed |= await _allowed_system_permissions(user, session)
 
