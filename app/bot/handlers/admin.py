@@ -151,6 +151,7 @@ async def admin_user_detail(callback: CallbackQuery) -> None:
     buttons.extend(
         [
             [InlineKeyboardButton(text="Группы", callback_data=f"admin:groups:{user.id}")],
+            [InlineKeyboardButton(text="Роли данных", callback_data=f"rbac:user:{user.id}")],
             [InlineKeyboardButton(text="⬅️ К списку", callback_data="admin:users")],
         ]
     )

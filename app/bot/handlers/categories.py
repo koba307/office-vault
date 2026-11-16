@@ -114,6 +114,12 @@ async def category_manage(callback: CallbackQuery) -> None:
         if root.status == "ACTIVE":
             row.append(
                 InlineKeyboardButton(
+                    text="🔐",
+                    callback_data=f"rbac:category:{root.code}",
+                )
+            )
+            row.append(
+                InlineKeyboardButton(
                     text="➕",
                     callback_data=f"category:add:{root.id}",
                 )

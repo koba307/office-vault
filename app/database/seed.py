@@ -9,6 +9,7 @@ from app.database.models import (
     Category,
     CategoryGroupPermission,
     CategoryPermission,
+    CategoryRole,
     Group,
     Permission,
     PermissionCode,
@@ -295,6 +296,37 @@ async def seed_system_data(session: AsyncSession) -> None:
     permissions = await _seed_permissions(session)
     await _seed_roles(session, permissions)
     await _seed_categories_and_groups(session)
+
+    # Динамические роли, соответствующие рабочим разделам (RBAC).
+    role_defs = [
+        ("holodka", "Холодка"),
+        ("second_stage", "2й Этап"),
+        ("closers", "Клоузеры"),
+    ]
+    roles_by_code = {r.code: r for r in (await session.execute(select(Role))).scalars().all()}
+    for code, name in role_defs:
+        if code not in roles_by_code:
+            role = Role(code=code, name=name, is_system=True)
+            session.add(role)
+            await session.flush()
+            roles_by_code[code] = role
+    # Связь категорий с ролями (Общие доступна всем, роли не требуются).
+    categories = {c.code: c for c in (await session.execute(select(Category))).scalars().all()}
+    category_role_pairs = [
+        ("holodka", "holodka"),
+        ("second_stage", "second_stage"),
+        ("closers", "closers"),
+    ]
+    existing = {(cr.category_id, cr.role_id) for cr in (await session.execute(select(CategoryRole))).scalars().all()}
+    for cat_code, role_code in category_role_pairs:
+        cat = categories.get(cat_code)
+        role = roles_by_code.get(role_code)
+        if cat is None or role is None:
+            continue
+        if (cat.id, role.id) in existing:
+            continue
+        session.add(CategoryRole(category_id=cat.id, role_id=role.id))
+        existing.add((cat.id, role.id))
 
     # Backfill role_id for existing users
     result = await session.execute(select(User))

@@ -39,6 +39,7 @@ async def main() -> None:
         menu,
         navigation,
         profile,
+        rbac,
         recent,
         records,
         search,
@@ -92,6 +93,7 @@ async def main() -> None:
     dp.include_router(search.router)
     dp.include_router(favorites.router)
     dp.include_router(admin.router)
+    dp.include_router(rbac.router)
     dp.include_router(import_export.router)
     dp.include_router(files.router)
     dp.include_router(export.router)

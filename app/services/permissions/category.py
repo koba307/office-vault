@@ -90,21 +90,56 @@ async def category_denial_reason(
     if category.status != "ACTIVE":
         return DenyReason.CATEGORY_DENIED
 
-    scope = await resolve_scope(session, category_id)
-    if scope is None:
-        return DenyReason.CATEGORY_DENIED
-    owner_id, mode = scope
-    allowed = await check_scope(
-        session,
-        ctx,
-        mode,
-        action,
-        group_model=CategoryGroupPermission,
-        user_model=CategoryUserPermission,
-        owner_column="category_id",
-        owner_id=owner_id,
+    # Системная категория «Общие» доступна всем активным сотрудникам.
+    if category.code == "general":
+        return None
+
+    # BOSS и SUPERADMIN видят все категории (управление).
+    from app.database.models import RoleCode
+    if ctx.role in (RoleCode.BOSS, RoleCode.SUPERADMIN):
+        return None
+
+    from uuid import UUID as _UUID
+
+    from app.database.models import CategoryRole, User, UserRole
+
+    user_role_ids: set = set()
+    try:
+        uid = _UUID(str(ctx.user_id))
+    except (ValueError, TypeError):
+        uid = None
+    if uid is not None:
+        rows = await session.execute(select(UserRole.role_id).where(UserRole.user_id == uid))
+        user_role_ids.update(rows.scalars().all())
+    user_obj = await session.get(User, uid) if uid is not None else None
+    if user_obj is not None and getattr(user_obj, "role_id", None) is not None:
+        user_role_ids.add(user_obj.role_id)
+
+    cat_rows = await session.execute(
+        select(CategoryRole.role_id).where(CategoryRole.category_id == category_id)
     )
-    return None if allowed else DenyReason.CATEGORY_DENIED
+    category_role_ids = set(cat_rows.scalars().all())
+    # Если роли для категории не назначены, используем старую модель прав
+    # (access_mode / группы / пользователи) для обратной совместимости.
+    if not category_role_ids:
+        scope = await resolve_scope(session, category_id)
+        if scope is None:
+            return DenyReason.CATEGORY_DENIED
+        owner_id, mode = scope
+        allowed = await check_scope(
+            session,
+            ctx,
+            mode,
+            action,
+            group_model=CategoryGroupPermission,
+            user_model=CategoryUserPermission,
+            owner_column="category_id",
+            owner_id=owner_id,
+        )
+        return None if allowed else DenyReason.CATEGORY_DENIED
+    if not (user_role_ids & category_role_ids):
+        return DenyReason.CATEGORY_DENIED
+    return None
 
 
 async def check_category_access(
