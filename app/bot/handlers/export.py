@@ -109,7 +109,7 @@ def _nav_rows(
 
 
 def _markup(rows: list[list[InlineKeyboardButton]]) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+    return InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 def _two_columns(buttons: list[InlineKeyboardButton]) -> list[list[InlineKeyboardButton]]:

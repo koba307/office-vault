@@ -5,6 +5,7 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
@@ -146,7 +147,7 @@ async def _file_card(session, file: File, user: User) -> tuple[str, InlineKeyboa
                     )
                 ]
             )
-        return text, InlineKeyboardMarkup(inline_keyboard=rows)
+        return text, InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
     can_download = await check_file_download(user, file.id, session)
     can_edit = await PermissionService.can(user, PermissionCode.EDIT, TARGET_FILE, file.id, session)
@@ -167,7 +168,7 @@ async def _file_card(session, file: File, user: User) -> tuple[str, InlineKeyboa
         rows.append(
             [InlineKeyboardButton(text="🗑 Удалить", callback_data=f"files:delete:{file.id}")]
         )
-    return text, InlineKeyboardMarkup(inline_keyboard=rows)
+    return text, InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 def _upload_metadata_text(file: File) -> str:
@@ -408,7 +409,7 @@ async def versions_screen(callback: CallbackQuery) -> None:
             )
     await callback.message.answer(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows) if rows else None,
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)) if rows else None,
         parse_mode="HTML",
     )
     await callback.answer()

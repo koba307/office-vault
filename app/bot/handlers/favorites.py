@@ -3,6 +3,7 @@ from uuid import UUID
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.bot.handlers.menu import PAGE_SIZE, TYPE_TITLES
@@ -76,7 +77,7 @@ def favorites_view(
         nav = pagination_keyboard(total, page, PAGE_SIZE, FAVORITES_PAGE_PREFIX)
         rows.extend(nav.inline_keyboard)
     rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
-    return "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows)
+    return "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 async def _show(callback: CallbackQuery, text: str, markup: InlineKeyboardMarkup) -> None:

@@ -12,6 +12,7 @@ from uuid import UUID
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.bot.handlers.menu import STALE_TEXT, TYPE_TITLES
@@ -124,7 +125,7 @@ async def _render_page(callback: CallbackQuery, user_id: UUID, page: int) -> str
     try:
         await callback.message.edit_text(
             text,
-            reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
             parse_mode="HTML",
         )
     except TelegramBadRequest as exc:

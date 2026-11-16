@@ -7,6 +7,7 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 
@@ -201,7 +202,7 @@ def _type_keyboard(prefix: str, back: str) -> InlineKeyboardMarkup:
     rows = [buttons[index : index + 2] for index in range(0, len(buttons), 2)]
     cancel = "record:add:cancel" if prefix == "record:ftype" else "record:edit:cancel"
     rows.append(_cancel_row(cancel, back))
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+    return InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 async def _load_user(session, telegram_id: int):
@@ -244,7 +245,7 @@ async def add_choose_type(callback: CallbackQuery, state: FSMContext) -> None:
     await _send(
         callback,
         f"➕ <b>{_escape(category.name)}</b>\n\nВыберите тип информации:",
-        InlineKeyboardMarkup(inline_keyboard=rows),
+        InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
     )
     await callback.answer()
 
@@ -452,7 +453,7 @@ async def _ask_field(target: Message | CallbackQuery, state: FSMContext) -> None
         ],
         [_button("👁 Предпросмотр", "record:add:preview"), _button("✖️ Отменить", "record:add:cancel")],
     ]
-    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows))
+    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
 
 
 @router.callback_query(F.data == "record:add:skip_field")
@@ -610,7 +611,7 @@ async def _show_field_menu(target: Message | CallbackQuery, state: FSMContext) -
         [_button("➡️ Продолжить", "record:add:fields_done")],
         _cancel_row(back="record:add:back:description"),
     ]
-    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows))
+    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
 
 
 @router.callback_query(F.data == "record:add:fields_done")
@@ -643,7 +644,7 @@ async def _ask_tags(target: Message | CallbackQuery, state: FSMContext) -> None:
         ],
         _cancel_row(),
     ]
-    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows))
+    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
 
 
 @router.message(AddRecord.waiting_tags)
@@ -686,7 +687,7 @@ async def _ask_attachments(target: Message | CallbackQuery, state: FSMContext) -
         ],
         _cancel_row(back="record:add:back:fields"),
     ]
-    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows))
+    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
 
 
 @router.callback_query(F.data == "record:add:attach_hint")
@@ -790,7 +791,7 @@ async def _ask_visibility(target: Message | CallbackQuery, state: FSMContext) ->
     await _send(
         target,
         "👁 <b>Видимость записи</b>\n\nВыберите режим доступа:",
-        InlineKeyboardMarkup(inline_keyboard=rows),
+        InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
     )
 
 
@@ -847,7 +848,7 @@ async def _ask_groups(target: Message | CallbackQuery, state: FSMContext) -> Non
     await _send(
         target,
         "🏢 <b>Доступ по группам</b>\n\nОтметьте группы, которым видна запись:",
-        InlineKeyboardMarkup(inline_keyboard=rows),
+        InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
     )
 
 
@@ -882,7 +883,7 @@ async def add_group_toggle(callback: CallbackQuery, state: FSMContext) -> None:
     await _send(
         callback,
         "🏢 <b>Доступ по группам</b>\n\nОтметьте группы, которым видна запись:",
-        InlineKeyboardMarkup(inline_keyboard=rows),
+        InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
     )
     await callback.answer()
 
@@ -962,7 +963,7 @@ async def _show_preview(target: Message | CallbackQuery, state: FSMContext) -> N
             _button("✖️ Отменить", "record:add:cancel"),
         ],
     ]
-    await _send(target, "\n".join(_preview_lines(data)), InlineKeyboardMarkup(inline_keyboard=rows))
+    await _send(target, "\n".join(_preview_lines(data)), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
 
 
 @router.callback_query(F.data == "record:add:preview")
@@ -1171,7 +1172,7 @@ async def render_record_card(
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
         parse_mode="HTML",
     )
     await callback.answer(notice)
@@ -1372,7 +1373,7 @@ async def _render_edit_menu(
         ]
     )
     rows.append([_button("⬅️ К записи", f"record:view:{record.id}")])
-    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows))
+    await _send(target, "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
 
 
 @router.callback_query(F.data.regexp(r"^record:edit:[0-9a-fA-F-]{36}$"))
@@ -2050,7 +2051,7 @@ def _attachments_view(record, files: list[File], can_manage: bool) -> tuple[str,
     if can_manage:
         rows.append([_button("➕ Добавить файл", f"record:file_add:{record.id}")])
     rows.append([_button("⬅️ Назад", f"record:view:{record.id}")])
-    return "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=rows)
+    return "\n".join(lines), InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 @router.callback_query(F.data.startswith("record:move"))
@@ -2097,7 +2098,7 @@ async def _move_screen(callback: CallbackQuery, state: FSMContext, rid_raw: str)
     rows.append([_button("⬅️ Назад", f"record:view:{rid}")])
     await callback.message.edit_text(
         f"➡️ Переместить запись «{_escape(record.title)}» в раздел:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
         parse_mode="HTML",
     )
     await callback.answer()
@@ -2520,7 +2521,7 @@ async def show_history(callback: CallbackQuery) -> None:
     rows.append([_button("⬅️ К записи", f"record:view:{rid}")])
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
         parse_mode="HTML",
     )
     await callback.answer()
@@ -2598,7 +2599,7 @@ async def show_version(callback: CallbackQuery) -> None:
     rows.append([_button("📄 К записи", f"record:view:{rid}")])
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
         parse_mode="HTML",
     )
     await callback.answer()
@@ -2689,7 +2690,7 @@ async def _render_tags_screen(callback: CallbackQuery, rid: UUID) -> bool:
     rows.append([_button("⬅️ К записи", f"record:view:{rid}")])
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
         parse_mode="HTML",
     )
     return True

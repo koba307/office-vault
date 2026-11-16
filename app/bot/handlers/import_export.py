@@ -9,6 +9,7 @@ from uuid import UUID
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -74,7 +75,7 @@ def _keyboard(rows: list[list[InlineKeyboardButton]]) -> InlineKeyboardMarkup:
         for button in row:
             if len(button.callback_data or "") > CALLBACK_LIMIT:
                 raise ValueError("callback_data превышает лимит Telegram")
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+    return InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 def _category_keyboard(categories: list[tuple[str, str]]) -> InlineKeyboardMarkup:

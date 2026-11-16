@@ -11,6 +11,7 @@ import re
 from uuid import UUID
 
 from aiogram import F, Router
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import func, select
 
@@ -142,7 +143,7 @@ def build_archive_keyboard(
     prefix = f"archive:l:{status}:{category}:{record_type}"
     rows.extend(pagination_keyboard(total, page, PAGE_SIZE, prefix).inline_keyboard)
     rows.append([InlineKeyboardButton(text="⬅️ В главное меню", callback_data="menu:main")])
-    return InlineKeyboardMarkup(inline_keyboard=rows)
+    return InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
 
 
 def after_action_keyboard() -> InlineKeyboardMarkup:
@@ -345,7 +346,7 @@ async def archive_filter_category(callback: CallbackQuery) -> None:
     )
     await callback.message.edit_text(
         "📂 Выберите раздел для фильтра:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
     )
     await callback.answer()
 
@@ -388,7 +389,7 @@ async def archive_filter_type(callback: CallbackQuery) -> None:
     )
     await callback.message.edit_text(
         "📚 Выберите тип информации:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
     )
     await callback.answer()
 
@@ -731,7 +732,7 @@ async def archive_file_view(callback: CallbackQuery) -> None:
 
     rows = build_file_archive_rows([file], can_restore=can_restore, can_purge=can_purge)
     rows += _file_archive_keyboard().inline_keyboard
-    await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+    await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)))
     await callback.answer()
 
 

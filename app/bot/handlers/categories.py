@@ -3,6 +3,7 @@ from html import escape
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.handlers.menu import (
@@ -124,7 +125,7 @@ async def category_manage(callback: CallbackQuery) -> None:
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
         parse_mode="HTML",
     )
     await callback.answer()
@@ -210,7 +211,7 @@ async def category_view(callback: CallbackQuery) -> None:
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
         parse_mode="HTML",
     )
     await callback.answer()
@@ -269,7 +270,7 @@ async def category_add_root_choice(callback: CallbackQuery) -> None:
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="category:manage")])
     await callback.message.edit_text(
         "В каком разделе создать подкатегорию?",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
     )
     await callback.answer()
 
@@ -575,7 +576,7 @@ async def category_delete(callback: CallbackQuery) -> None:
 
     await callback.message.edit_text(
         "\n".join(lines),
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
         parse_mode="HTML",
     )
     await callback.answer()

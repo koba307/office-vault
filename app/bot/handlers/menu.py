@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from aiogram import F, Router
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -239,7 +240,7 @@ def category_content_keyboard(
         ]
     )
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=back_callback)])
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    return InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons))
 
 
 async def _load_user(telegram_id: int):
@@ -282,7 +283,7 @@ async def get_main_menu_keyboard(
     for section in role_menu_sections(role, allowed):
         for tool in section:
             buttons.append([InlineKeyboardButton(text=tool.text, callback_data=tool.callback)])
-    return InlineKeyboardMarkup(inline_keyboard=buttons)
+    return InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons))
 
 
 async def build_main_menu(telegram_id: int) -> InlineKeyboardMarkup:
@@ -353,7 +354,7 @@ async def render_category(callback: CallbackQuery, category_code: str) -> bool:
     title = category_title(category.code, category.name)
     await callback.message.edit_text(
         f"{breadcrumbs(title)}\n\nВыберите тип информации или подкатегорию:",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
     )
     return True
 
@@ -450,7 +451,7 @@ async def render_records_list(
 
     await callback.message.edit_text(
         "\n".join(lines) + f"\n\nСортировка: {SORT_TITLES[sort]}",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
     )
     return True
 
@@ -593,7 +594,7 @@ async def _screen(
     rows.append([InlineKeyboardButton(text="⬅️ В главное меню", callback_data="menu:main")])
     body = "\n".join(lines) if lines else "—"
     await callback.message.edit_text(
-        f"{breadcrumbs(title)}\n\n{body}", reply_markup=InlineKeyboardMarkup(inline_keyboard=rows)
+        f"{breadcrumbs(title)}\n\n{body}", reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows))
     )
     await callback.answer()
 

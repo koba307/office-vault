@@ -3,6 +3,7 @@ from uuid import UUID
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -37,7 +38,7 @@ async def admin_roles(callback: CallbackQuery) -> None:
     for g in groups:
         buttons.append([InlineKeyboardButton(text=f"👥 {g.name}", callback_data=f"admin:groupview:{g.id}")])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
-    await callback.message.edit_text("🛡 Роли и доступы — группы:", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
+    await callback.message.edit_text("🛡 Роли и доступы — группы:", reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)))
     await callback.answer()
 
 
@@ -106,7 +107,7 @@ async def admin_users(callback: CallbackQuery) -> None:
     buttons.append([InlineKeyboardButton(text="➕ Добавить", callback_data="admin:user:add")])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")])
 
-    await callback.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
+    await callback.message.edit_text("\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)))
     await callback.answer()
 
 
@@ -153,7 +154,7 @@ async def admin_user_detail(callback: CallbackQuery) -> None:
             [InlineKeyboardButton(text="⬅️ К списку", callback_data="admin:users")],
         ]
     )
-    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    kb = InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons))
     await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await callback.answer()
 
@@ -248,7 +249,7 @@ async def manage_groups(callback: CallbackQuery) -> None:
             callback_data=f"admin:togglegroup:{uid}:{g.id}"
         )])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=f"admin:user:{uid}")])
-    await callback.message.edit_text("Группы пользователя:", reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons))
+    await callback.message.edit_text("Группы пользователя:", reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)))
     await callback.answer()
 
 
