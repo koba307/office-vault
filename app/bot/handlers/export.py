@@ -16,6 +16,7 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from app.bot.keyboards.layout import auto_layout
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
@@ -175,7 +176,7 @@ async def _render(
                 user, PermissionCode.EXPORT, TARGET_CATEGORY, category.id, session
             ):
                 buttons.append(_btn(category.name, f"exp:cat:{category.code}"))
-        rows = _two_columns(buttons) + _nav_rows(data)
+        rows = auto_layout(buttons) + _nav_rows(data)
         return header + "Выберите категорию или пропустите, чтобы взять все доступные.", _markup(
             rows
         )
@@ -183,7 +184,7 @@ async def _render(
     if step == "type":
         buttons = [_btn(TYPE_TITLES[rtype], f"exp:type:{rtype.value}") for rtype in RecordType]
         return header + "Выберите тип записей или пропустите — будут все типы.", _markup(
-            _two_columns(buttons) + _nav_rows(data)
+            auto_layout(buttons) + _nav_rows(data)
         )
 
     if step == "records":
@@ -216,11 +217,11 @@ async def _render(
         )
         if not names:
             text += "\nВ выборке нет полей."
-        return text, _markup(_two_columns(buttons) + _nav_rows(data, primary=True))
+        return text, _markup(auto_layout(buttons) + _nav_rows(data, primary=True))
 
     if step == "format":
         buttons = [_btn(title, f"exp:fmt:{key}") for key, title in FORMAT_TITLES.items()]
-        return header + "Выберите формат файла.", _markup(_two_columns(buttons) + _nav_rows(data))
+        return header + "Выберите формат файла.", _markup(auto_layout(buttons) + _nav_rows(data))
 
     if step == "attachments":
         state = "включены" if data.get("include_files") else "выключены"
