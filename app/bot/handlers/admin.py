@@ -231,49 +231,64 @@ async def set_role(callback: CallbackQuery) -> None:
 
 
 @router.callback_query(F.data.startswith("admin:groups:"))
-async def manage_groups(callback: CallbackQuery) -> None:
+async def manage_groups(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     uid = (callback.data or "").split(":")[-1]
+    await state.update_data(admin_user_id=uid)
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
         if not _admin_only(me):
             await callback.answer("Нет доступа", show_alert=True)
             return
-        all_groups = await list_groups(session)
-        user_groups = await get_user_groups(session, UUID(uid))
-        user_group_ids = {g.id for g in user_groups}
+            all_groups = await list_groups(session)
+            user_groups = await get_user_groups(session, UUID(uid))
+            user_group_ids = {g.id for g in user_groups}
 
     buttons = []
     for g in all_groups:
         mark = "✅" if g.id in user_group_ids else "⬜"
         buttons.append([InlineKeyboardButton(
             text=f"{mark} {g.name}",
-            callback_data=f"admin:togglegroup:{uid}:{g.id}"
+            callback_data=f"admin:tg:{g.code}"
         )])
     buttons.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=f"admin:user:{uid}")])
-    await callback.message.edit_text("Группы пользователя:", reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)))
+    try:
+        await callback.message.edit_text("Группы пользователя:", reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)))
+    except Exception:  # noqa: BLE001, S110
+        pass
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("admin:togglegroup:"))
-async def toggle_group(callback: CallbackQuery) -> None:
+@router.callback_query(F.data.startswith("admin:tg:"))
+async def toggle_group(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-    parts = (callback.data or "").split(":")
-    uid, gid = parts[2], parts[3]
+    gcode = (callback.data or "").split(":")[-1]
+    data = await state.get_data()
+    uid = data.get("admin_user_id")
+    if not uid:
+        await callback.answer("Состояние устарело", show_alert=True)
+        return
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
         if not _admin_only(me):
             await callback.answer("Нет доступа", show_alert=True)
             return
+        from app.database.models import Group
+
+        group = (await session.execute(select(Group).where(Group.code == gcode))).scalar_one_or_none()
+        if group is None:
+            await callback.answer("Группа не найдена", show_alert=True)
+            return
+        gid = group.id
         user_groups = await get_user_groups(session, UUID(uid))
-        has = any(str(g.id) == gid for g in user_groups)
+        has = any(g.id == gid for g in user_groups)
         if has:
-            await remove_user_from_group(session, UUID(uid), UUID(gid))
+            await remove_user_from_group(session, UUID(uid), gid)
         else:
-            await assign_user_to_group(session, UUID(uid), UUID(gid), me.id)
+            await assign_user_to_group(session, UUID(uid), gid, me.id)
     await callback.answer("Обновлено")
     callback.data = f"admin:groups:{uid}"
-    await manage_groups(callback)
+    await manage_groups(callback, state)
 
 
 @router.callback_query(F.data == "admin:user:add")

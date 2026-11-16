@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -13,7 +12,6 @@ from .message_lifecycle import MessageLifecycleManager
 from .navigation import NavigationManager
 from .process import ProcessManager
 from .progress import ProgressManager
-
 
 logger = logging.getLogger(__name__)
 

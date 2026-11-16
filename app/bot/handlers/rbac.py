@@ -2,12 +2,12 @@ import logging
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.bot.keyboards.layout import smart_layout
 from app.database.models import CategoryRole, Role, User, UserRole
 from app.database.session import async_session
-from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
+from app.services.auth.permissions import get_user_by_telegram_id
 from app.services.categories import get_category
 
 router = Router()
@@ -65,7 +65,7 @@ async def rbac_user_roles(callback: CallbackQuery, state: FSMContext) -> None:
             reply_markup=_markup(buttons),
             parse_mode="HTML",
         )
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.exception("rbac user edit failed")
         await callback.message.answer(f"Ошибка: {e}")
     await callback.answer()
@@ -154,7 +154,7 @@ async def rbac_category_roles(callback: CallbackQuery, state: FSMContext) -> Non
             reply_markup=_markup(buttons),
             parse_mode="HTML",
         )
-    except Exception as e:  # noqa: BLE001
+    except Exception as e:
         logger.exception("rbac category edit failed")
         await callback.message.answer(f"Ошибка: {e}")
     await callback.answer()
@@ -165,7 +165,6 @@ async def rbac_toggle_category(callback: CallbackQuery, state: FSMContext) -> No
     await callback.answer()
     code = (callback.data or "").removeprefix("rbac:tc:")
     data = await state.get_data()
-    cat_code = data.get("rbac_category_code") or code
     # code здесь — код роли, категория берётся из state
     category_code = data.get("rbac_category_code")
     if not category_code:
