@@ -2,7 +2,7 @@ import html
 
 from aiogram import Router
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.handlers.menu import get_main_menu_keyboard
 from app.database.models import RoleCode, User, UserStatus
@@ -83,4 +83,7 @@ async def cmd_start(message: Message) -> None:
     elif user is not None:
         await message.answer(blocked_text(name))
     else:
-        await message.answer(invitation_text(user_id, name))
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="Зарегистрировать", callback_data="reg:start")]]
+        )
+        await message.answer(invitation_text(user_id, name), reply_markup=kb)

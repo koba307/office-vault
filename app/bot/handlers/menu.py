@@ -120,6 +120,7 @@ SUPERADMIN_TOOLS: tuple[MenuTool, ...] = (
     MenuTool("🔐 Безопасность", "menu:security", PermissionCode.MANAGE_SYSTEM.value),
     MenuTool("⚙️ Настройки системы", "menu:settings", PermissionCode.MANAGE_SYSTEM.value),
     MenuTool("🖥 Состояние сервисов", "menu:status", PermissionCode.MANAGE_SYSTEM.value),
+    MenuTool("📥 Заявки на регистрацию", "reg:list", PermissionCode.MANAGE_USERS.value),
     # Хаб администрирования виден всегда: ссылки внутри фильтруются по правам
     MenuTool("🧰 Администрирование", "menu:admin"),
 )

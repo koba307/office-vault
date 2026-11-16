@@ -923,3 +923,27 @@ class CategoryRole(Base):
         PGUUID(as_uuid=True), ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class RegistrationRequestStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
+class RegistrationRequest(Base):
+    __tablename__ = "registration_requests"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, nullable=False, index=True)
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    display_name: Mapped[str] = mapped_column(String(128), nullable=False)
+    role_code: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[RegistrationRequestStatus] = mapped_column(
+        Enum(RegistrationRequestStatus), default=RegistrationRequestStatus.PENDING
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    decided_by: Mapped[UUID | None] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
+    )

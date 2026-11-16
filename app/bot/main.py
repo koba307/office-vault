@@ -44,6 +44,7 @@ async def main() -> None:
         rbac,
         recent,
         records,
+        registration,
         search,
         start,
     )
@@ -103,6 +104,7 @@ async def main() -> None:
     dp.include_router(recent.router)
     dp.include_router(backup_handler.router)
     dp.include_router(profile.router)
+    dp.include_router(registration.router)
     dp.include_router(navigation.stale_router)
 
     print("BEFORE MW", flush=True)
