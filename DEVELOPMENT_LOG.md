@@ -281,3 +281,5 @@
 - Phase 08 marked GITHUB_BACKUP_VERIFIED: import/export pipeline, formats, preview, mapping, background jobs, progress, reports; tests green.
 
 - Phase 09 marked GITHUB_BACKUP_VERIFIED: audit/statistics/notifications services added; tests green.
+
+- Phase 10 marked GITHUB_BACKUP_VERIFIED: backup/recovery service, encrypted backups, integrity check, restore, Telegram UI.

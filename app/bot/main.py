@@ -40,6 +40,7 @@ async def main() -> None:
         profile,
         recent,
         records,
+        backup as backup_handler,
         search,
         start,
     )
@@ -90,6 +91,7 @@ async def main() -> None:
     dp.include_router(files.router)
     dp.include_router(export.router)
     dp.include_router(recent.router)
+    dp.include_router(backup_handler.router)
     dp.include_router(profile.router)
     dp.include_router(navigation.stale_router)
 

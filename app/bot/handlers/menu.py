@@ -860,8 +860,12 @@ async def menu_backup(callback: CallbackQuery) -> None:
         lines.append(f"• {when} — {backup.kind.value} — {backup.status.value} — {size}")
     if not lines:
         lines = ["Резервных копий ещё нет."]
-    lines += ["", "Запуск и восстановление бэкапов будут доступны в Phase 10."]
-    await _screen(callback, "💾 Резервные копии", lines)
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="▶️ Создать бэкап", callback_data="backup:run")],
+        [InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")],
+    ])
+    await callback.message.edit_text("\n".join(lines), reply_markup=kb, parse_mode="HTML")
+    await callback.answer()
 
 
 @router.callback_query(F.data == "menu:security")
