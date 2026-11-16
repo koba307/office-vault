@@ -50,7 +50,7 @@ def test_tz_v2_tables_are_registered():
 
 
 def test_required_enum_values_exist():
-    assert {role.value for role in RoleCode} == {"SUPERADMIN", "BOSS", "EMPLOYEE"}
+    assert {role.value for role in RoleCode} == {"SUPERADMIN", "BOSS", "COACH", "EMPLOYEE"}
     assert {record_type.value for record_type in RecordType} == {
         "CREDENTIALS",
         "SIP",

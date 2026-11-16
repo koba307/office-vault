@@ -111,6 +111,21 @@ BOSS_TOOLS: tuple[MenuTool, ...] = (
     MenuTool("🔎 Поиск", "search:start"),
 )
 
+COACH_TOOLS: tuple[MenuTool, ...] = (
+    MenuTool("➕ Добавить запись", "menu:add", PermissionCode.CREATE.value),
+    MenuTool("📂 Управление категориями", "category:manage", PermissionCode.MANAGE_CATEGORIES.value),
+    MenuTool("📎 Управление файлами", "menu:files", PermissionCode.UPLOAD.value),
+    MenuTool("📥 Импорт", "import:start", PermissionCode.IMPORT.value),
+    MenuTool("📤 Экспорт", "export:csv", PermissionCode.EXPORT.value),
+    MenuTool("🗃 Архив", "menu:archive", PermissionCode.ARCHIVE.value),
+    MenuTool("📊 Статистика", "menu:stats"),
+    MenuTool("🔎 Поиск", "search:start"),
+    MenuTool("👥 Пользователи", "admin:users", PermissionCode.MANAGE_USERS.value),
+    MenuTool("🛡 Роли и доступы", "admin:roles", PermissionCode.MANAGE_SYSTEM.value),
+    MenuTool("📥 Заявки на регистрацию", "reg:list", PermissionCode.MANAGE_USERS.value),
+    MenuTool("📋 Полный аудит", "menu:audit", PermissionCode.VIEW_AUDIT.value),
+)
+
 SUPERADMIN_TOOLS: tuple[MenuTool, ...] = (
     MenuTool("👥 Пользователи", "admin:users", PermissionCode.MANAGE_USERS.value),
     MenuTool("🛡 Роли и доступы", "admin:roles", PermissionCode.MANAGE_SYSTEM.value),
@@ -142,6 +157,8 @@ def role_menu_sections(role: RoleCode | None, allowed: set[str] | None = None) -
     allowed = set(allowed or ())
     if role == RoleCode.SUPERADMIN:
         sections = [_visible_tools(BOSS_TOOLS, allowed), _visible_tools(SUPERADMIN_TOOLS, allowed)]
+    elif role == RoleCode.COACH:
+        sections = [_visible_tools(COACH_TOOLS, allowed)]
     elif role == RoleCode.BOSS:
         sections = [_visible_tools(BOSS_TOOLS, allowed)]
     else:
@@ -153,7 +170,7 @@ async def _allowed_system_permissions(user: User, session: AsyncSession) -> set[
     """Собирает системные права пользователя для динамического меню."""
     candidates = {
         tool.permission
-        for section in (BOSS_TOOLS, SUPERADMIN_TOOLS)
+        for section in (BOSS_TOOLS, COACH_TOOLS, SUPERADMIN_TOOLS)
         for tool in section
         if tool.permission is not None
     }
@@ -181,7 +198,7 @@ def breadcrumbs(*parts: str) -> str:
 
 def can_manage_categories(user) -> bool:
     """Управление категориями доступно BOSS и SUPERADMIN."""
-    return bool(user and user.role in (RoleCode.BOSS, RoleCode.SUPERADMIN))
+    return bool(user and user.role in (RoleCode.BOSS, RoleCode.COACH, RoleCode.SUPERADMIN))
 
 
 def parse_list_callback(data: str | None) -> tuple[str, str, str, int] | None:

@@ -45,6 +45,7 @@ PERMISSIONS = [
 
 ROLE_PERMISSIONS: dict[str, list[PermissionCode]] = {
     RoleCode.SUPERADMIN.value: [p for p, _ in PERMISSIONS],
+    RoleCode.COACH.value: [p for p, _ in PERMISSIONS],
     RoleCode.BOSS.value: [
         PermissionCode.VIEW,
         PermissionCode.CREATE,

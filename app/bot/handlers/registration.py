@@ -53,7 +53,9 @@ async def _notify_admins(bot, text: str, request_id: UUID) -> None:
     ids = [settings.superadmin_telegram_id]
     async with async_session() as session:
         result = await session.execute(
-            __import__("sqlalchemy").select(User.telegram_id).where(User.role == RoleCode.SUPERADMIN)
+            __import__("sqlalchemy").select(User.telegram_id).where(
+                User.role.in_([RoleCode.SUPERADMIN, RoleCode.COACH])
+            )
         )
         ids.extend(result.scalars().all())
     for tid in set(ids):
@@ -159,7 +161,7 @@ async def reg_list(callback: CallbackQuery) -> None:
     await callback.answer()
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         from sqlalchemy import select
@@ -190,7 +192,7 @@ async def req_view(callback: CallbackQuery) -> None:
     rid = (callback.data or "").removeprefix("req:v:")
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         req = await session.get(RegistrationRequest, UUID(rid))
@@ -254,7 +256,7 @@ async def req_approve(callback: CallbackQuery) -> None:
     rid = (callback.data or "").removeprefix("req:a:")
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         req = await session.get(RegistrationRequest, UUID(rid))
@@ -271,7 +273,7 @@ async def req_reject(callback: CallbackQuery) -> None:
     rid = (callback.data or "").removeprefix("req:r:")
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         req = await session.get(RegistrationRequest, UUID(rid))

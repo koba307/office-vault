@@ -32,6 +32,7 @@ class Base(DeclarativeBase):
 class RoleCode(str, enum.Enum):
     SUPERADMIN = "SUPERADMIN"
     BOSS = "BOSS"
+    COACH = "COACH"
     EMPLOYEE = "EMPLOYEE"
 
 

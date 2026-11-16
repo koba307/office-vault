@@ -86,7 +86,7 @@ class AddUser(StatesGroup):
 
 
 def _admin_only(user) -> bool:
-    return user and user.role == RoleCode.SUPERADMIN
+    return bool(user and user.role in (RoleCode.SUPERADMIN, RoleCode.COACH))
 
 
 @router.callback_query(F.data == "admin:users")
@@ -199,6 +199,7 @@ async def change_role_menu(callback: CallbackQuery) -> None:
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="EMPLOYEE", callback_data=f"admin:setrole:{uid}:EMPLOYEE")],
         [InlineKeyboardButton(text="BOSS", callback_data=f"admin:setrole:{uid}:BOSS")],
+        [InlineKeyboardButton(text="COACH", callback_data=f"admin:setrole:{uid}:COACH")],
         [InlineKeyboardButton(text="⬅️ Назад", callback_data=f"admin:user:{uid}")],
     ])
     await callback.message.edit_text("Выберите роль:", reply_markup=kb)
@@ -209,7 +210,7 @@ async def change_role_menu(callback: CallbackQuery) -> None:
 async def set_role(callback: CallbackQuery) -> None:
     parts = (callback.data or "").split(":")
     uid, role_name = parts[2], parts[3]
-    if role_name not in {RoleCode.EMPLOYEE.value, RoleCode.BOSS.value}:
+    if role_name not in {RoleCode.EMPLOYEE.value, RoleCode.BOSS.value, RoleCode.COACH.value}:
         await callback.answer("SUPERADMIN назначается только конфигурацией сервера", show_alert=True)
         return
     async with async_session() as session:
@@ -339,6 +340,7 @@ async def add_user_name(message: Message, state: FSMContext) -> None:
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="EMPLOYEE", callback_data="admin:newrole:EMPLOYEE")],
         [InlineKeyboardButton(text="BOSS", callback_data="admin:newrole:BOSS")],
+        [InlineKeyboardButton(text="COACH", callback_data="admin:newrole:COACH")],
     ])
     await state.set_state(AddUser.waiting_role)
     await message.answer("Выберите роль:", reply_markup=kb)
@@ -347,7 +349,7 @@ async def add_user_name(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data.startswith("admin:newrole:"))
 async def finish_add_user(callback: CallbackQuery, state: FSMContext) -> None:
     role_name = (callback.data or "").split(":")[-1]
-    if role_name not in {RoleCode.EMPLOYEE.value, RoleCode.BOSS.value}:
+    if role_name not in {RoleCode.EMPLOYEE.value, RoleCode.BOSS.value, RoleCode.COACH.value}:
         await callback.answer("Нельзя назначить эту роль через добавление пользователя", show_alert=True)
         return
     data = await state.get_data()

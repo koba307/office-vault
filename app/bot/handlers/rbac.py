@@ -35,7 +35,7 @@ async def rbac_user_roles(callback: CallbackQuery, state: FSMContext) -> None:
         return
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         user = await session.get(User, user_uuid)
@@ -89,7 +89,7 @@ async def rbac_toggle_user(callback: CallbackQuery, state: FSMContext) -> None:
         return
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         role = (await session.execute(__import__("sqlalchemy").select(Role).where(Role.code == code))).scalar_one_or_none()
@@ -124,7 +124,7 @@ async def rbac_category_roles(callback: CallbackQuery, state: FSMContext) -> Non
         code = raw.removeprefix("rbac:c:")
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         category = await get_category(session, code)
@@ -172,7 +172,7 @@ async def rbac_toggle_category(callback: CallbackQuery, state: FSMContext) -> No
         return
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
-        if me is None or me.role.value != "SUPERADMIN":
+        if me is None or me.role.value not in ("SUPERADMIN", "COACH"):
             await callback.answer("Нет доступа", show_alert=True)
             return
         category = await get_category(session, category_code)

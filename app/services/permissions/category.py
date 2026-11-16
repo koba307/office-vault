@@ -96,7 +96,7 @@ async def category_denial_reason(
 
     # BOSS и SUPERADMIN видят все категории (управление).
     from app.database.models import RoleCode
-    if ctx.role in (RoleCode.BOSS, RoleCode.SUPERADMIN):
+    if ctx.role in (RoleCode.BOSS, RoleCode.COACH, RoleCode.SUPERADMIN):
         return None
 
     from uuid import UUID as _UUID
