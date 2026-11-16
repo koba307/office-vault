@@ -299,18 +299,32 @@ async def start_add_user(callback: CallbackQuery, state: FSMContext) -> None:
             await callback.answer("Нет доступа", show_alert=True)
             return
     await state.set_state(AddUser.waiting_telegram_id)
-    await callback.message.answer("Введите Telegram ID нового пользователя:")
+    await callback.message.answer("Введите Telegram ID или @username нового пользователя:")
     await callback.answer()
 
 
 @router.message(AddUser.waiting_telegram_id)
 async def add_user_id(message: Message, state: FSMContext) -> None:
-    try:
-        tid = int((message.text or "").strip())
-    except ValueError:
-        await message.answer("Нужно число. Попробуйте ещё раз:")
-        return
-    if tid <= 0:
+    raw = (message.text or "").strip()
+    tid: int | None = None
+    if raw.startswith("@"):
+        username = raw.lstrip("@")
+        try:
+            chat = await message.bot.get_chat(f"@{username}")
+            tid = int(chat.id)
+        except Exception:  # noqa: BLE001
+            await message.answer(
+                "Не удалось получить Telegram ID по username. "
+                "Убедитесь, что пользователь запускал бота, или введите числовой ID."
+            )
+            return
+    else:
+        try:
+            tid = int(raw)
+        except ValueError:
+            await message.answer("Нужно число или @username. Попробуйте ещё раз:")
+            return
+    if tid is None or tid <= 0:
         await message.answer("Telegram ID должен быть положительным числом. Попробуйте ещё раз:")
         return
     await state.update_data(telegram_id=tid)
