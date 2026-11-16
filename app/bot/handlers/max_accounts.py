@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -21,6 +23,8 @@ from app.services.max_accounts.service import (
 )
 
 router = Router()
+
+logger = logging.getLogger(__name__)
 
 
 class MaxUpload(StatesGroup):
@@ -104,6 +108,7 @@ async def max_upload_start(callback: CallbackQuery, state: FSMContext) -> None:
             await callback.answer("Нет доступа", show_alert=True)
             return
     await state.set_state(MaxUpload.waiting_file)
+    logger.info("MAX upload waiting file from user %s", callback.from_user.id)
     await callback.message.edit_text(
         "📤 Отправьте .txt файл или .zip архив с .txt файлами.\n"
         "Для отмены — /cancel.",
@@ -125,12 +130,28 @@ async def max_upload_file(message: Message, state: FSMContext) -> None:
         if not (filename.lower().endswith(".txt") or filename.lower().endswith(".zip")):
             await message.answer("Нужен .txt или .zip с .txt файлами.")
             return
-        file = await message.bot.get_file(document.file_id)
-        data = await message.bot.download_file(file.file_path)
+        logger.info("MAX upload received document %s (%s) from user %s", filename, document.file_size, message.from_user.id)
         try:
+            file = await message.bot.get_file(document.file_id)
+            data = await message.bot.download_file(file.file_path)
             count = await upload_max_accounts(session, user, bytes(data), filename)
         except ValueError as exc:
             await message.answer(str(exc))
             return
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("MAX upload failed")
+            await message.answer(f"Ошибка загрузки: {exc}")
+            return
         await state.clear()
         await message.answer(f"✅ Добавлено MAX-аккаунтов: <b>{count}</b>", parse_mode="HTML")
+
+
+@router.message(F.text == "/max_upload")
+async def max_upload_command(message: Message, state: FSMContext) -> None:
+    async with async_session() as session:
+        user = await _user_active(session, message.from_user.id)
+        if user is None or user.role.value != "SUPERADMIN":
+            await message.answer("Нет доступа.")
+            return
+    await state.set_state(MaxUpload.waiting_file)
+    await message.answer("📤 Отправьте .txt файл или .zip архив с .txt файлами.")

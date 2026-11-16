@@ -279,7 +279,7 @@ async def get_main_menu_keyboard(
                         ]
                     )
             # Быстрый доступ к подкатегории MAX внутри «2й Этап».
-            max_category = next((c for c in categories if c.code == "max"), None)
+            max_category = await get_category(session, "max")
             if max_category is not None and await PermissionService.can(
                 user, "VIEW", "category", max_category.id, session
             ):
