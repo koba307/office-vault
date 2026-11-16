@@ -12,6 +12,7 @@ router = Router()
 
 @router.callback_query(F.data.startswith("rbac:user:"))
 async def rbac_user_roles(callback: CallbackQuery) -> None:
+    await callback.answer()
     uid = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
@@ -50,6 +51,7 @@ async def rbac_user_roles(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("rbac:toggleuser:"))
 async def rbac_toggle_user(callback: CallbackQuery) -> None:
+    await callback.answer()
     parts = (callback.data or "").split(":")
     uid, rid = parts[2], parts[3]
     from uuid import UUID as _UUID
@@ -80,6 +82,7 @@ async def rbac_toggle_user(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("rbac:category:"))
 async def rbac_category_roles(callback: CallbackQuery) -> None:
+    await callback.answer()
     code = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
@@ -124,6 +127,7 @@ async def rbac_category_roles(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("rbac:togglecategory:"))
 async def rbac_toggle_category(callback: CallbackQuery) -> None:
+    await callback.answer()
     parts = (callback.data or "").split(":")
     code, rid = parts[2], parts[3]
     async with async_session() as session:

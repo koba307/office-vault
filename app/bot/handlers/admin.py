@@ -232,6 +232,7 @@ async def set_role(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("admin:groups:"))
 async def manage_groups(callback: CallbackQuery) -> None:
+    await callback.answer()
     uid = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
@@ -256,6 +257,7 @@ async def manage_groups(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data.startswith("admin:togglegroup:"))
 async def toggle_group(callback: CallbackQuery) -> None:
+    await callback.answer()
     parts = (callback.data or "").split(":")
     uid, gid = parts[2], parts[3]
     async with async_session() as session:
