@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest
 

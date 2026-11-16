@@ -1,16 +1,16 @@
 import asyncio
 
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.storage.base import StorageKey
-
-from app.bot.system.navigation import NavigationManager
-from app.bot.system.confirmation import ConfirmationManager
-from app.bot.system.process import ProcessManager, OperationStatus
-from app.bot.system.progress import render_progress_bar
-from app.bot.system.message_lifecycle import MessageLifecycleManager
-from app.bot.system.keyboard_builder import KeyboardBuilder
+from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import InlineKeyboardButton
+
+from app.bot.system.confirmation import ConfirmationManager
+from app.bot.system.keyboard_builder import KeyboardBuilder
+from app.bot.system.message_lifecycle import MessageLifecycleManager
+from app.bot.system.navigation import NavigationManager
+from app.bot.system.process import ProcessManager
+from app.bot.system.progress import render_progress_bar
 
 
 async def _state() -> FSMContext:

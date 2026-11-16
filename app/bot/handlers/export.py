@@ -16,7 +16,6 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import auto_layout
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
@@ -27,6 +26,7 @@ from aiogram.types import (
 from sqlalchemy import select
 
 from app.bot.handlers.menu import TYPE_TITLES
+from app.bot.keyboards.layout import auto_layout, smart_layout
 from app.database.models import Category, PermissionCode, RecordType, User
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active

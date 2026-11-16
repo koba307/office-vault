@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from aiogram import F, Router
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.keyboards.layout import smart_layout
 from app.database.models import (
     AuditLog,
     Backup,
@@ -278,6 +278,14 @@ async def get_main_menu_keyboard(
                             )
                         ]
                     )
+            # Быстрый доступ к подкатегории MAX внутри «2й Этап».
+            max_category = next((c for c in categories if c.code == "max"), None)
+            if max_category is not None and await PermissionService.can(
+                user, "VIEW", "category", max_category.id, session
+            ):
+                buttons.append(
+                    [InlineKeyboardButton(text="📦 MAX", callback_data="max:menu")]
+                )
             allowed |= await _allowed_system_permissions(user, session)
 
     for section in role_menu_sections(role, allowed):

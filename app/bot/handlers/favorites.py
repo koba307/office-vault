@@ -3,11 +3,11 @@ from uuid import UUID
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.bot.handlers.menu import PAGE_SIZE, TYPE_TITLES
 from app.bot.handlers.records import render_record_card
+from app.bot.keyboards.layout import smart_layout
 from app.bot.keyboards.pagination import pagination_keyboard, total_pages
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active

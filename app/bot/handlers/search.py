@@ -5,7 +5,6 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,6 +16,7 @@ from app.bot.handlers.menu import (
     render_category,
     render_main,
 )
+from app.bot.keyboards.layout import smart_layout
 from app.bot.keyboards.pagination import pagination_keyboard, total_pages
 from app.database.models import Record, RecordType, User
 from app.database.session import async_session

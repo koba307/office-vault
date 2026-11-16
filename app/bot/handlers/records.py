@@ -7,11 +7,11 @@ from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 
 from app.bot.handlers.menu import SORT_DATE, TYPE_TITLES, render_records_list
+from app.bot.keyboards.layout import smart_layout
 from app.bot.keyboards.pagination import confirm_keyboard
 from app.bot.states.add_record import AddRecord, EditRecord
 from app.core.config import settings

@@ -12,10 +12,10 @@ from uuid import UUID
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
 from app.bot.handlers.menu import STALE_TEXT, TYPE_TITLES
+from app.bot.keyboards.layout import smart_layout
 from app.bot.keyboards.pagination import confirm_keyboard, pagination_keyboard, total_pages
 from app.database.models import RecordType
 from app.database.session import async_session

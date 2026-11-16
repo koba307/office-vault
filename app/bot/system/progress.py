@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Callable
+from collections.abc import Callable
 
 from aiogram import Bot
 
@@ -24,11 +24,11 @@ class ProgressManager:
         while not stop_event.is_set():
             try:
                 await bot.edit_message_text(render(), chat_id=chat_id, message_id=message_id)
-            except Exception:  # noqa: BLE001
-                pass
+            except Exception:  # noqa: BLE001, S112
+                continue
             try:
                 await asyncio.wait_for(stop_event.wait(), timeout=self.update_interval)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
 
     def start(self, bot: Bot, chat_id: int, message_id: int, render: Callable[[], str]) -> asyncio.Event:

@@ -35,14 +35,17 @@ async def main() -> None:
         favorites,
         files,
         import_export,
+        max_accounts,
         menu,
         navigation,
         profile,
         recent,
         records,
-        backup as backup_handler,
         search,
         start,
+    )
+    from app.bot.handlers import (
+        backup as backup_handler,
     )
     from app.bot.middlewares.audit import AuditMiddleware
     from app.bot.middlewares.auth import AuthMiddleware
@@ -83,6 +86,7 @@ async def main() -> None:
     # перекрывает упрощённый список menu:archive из Phase 04.
     dp.include_router(archive.router)
     dp.include_router(menu.router)
+    dp.include_router(max_accounts.router)
     dp.include_router(categories.router)
     dp.include_router(records.router)
     dp.include_router(search.router)

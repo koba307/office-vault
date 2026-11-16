@@ -1,20 +1,20 @@
 """Унифицированная система навигации, подтверждений, отмены, прогресса и жизненного цикла сообщений."""
 
-from .context import OperationContext
-from .navigation import NavigationManager
 from .confirmation import ConfirmationManager
-from .process import ProcessManager, OperationStatus
-from .progress import ProgressManager
-from .message_lifecycle import MessageLifecycleManager
+from .context import OperationContext
 from .keyboard_builder import KeyboardBuilder
+from .message_lifecycle import MessageLifecycleManager
+from .navigation import NavigationManager
+from .process import OperationStatus, ProcessManager
+from .progress import ProgressManager
 
 __all__ = [
-    "OperationContext",
-    "NavigationManager",
     "ConfirmationManager",
-    "ProcessManager",
-    "OperationStatus",
-    "ProgressManager",
-    "MessageLifecycleManager",
     "KeyboardBuilder",
+    "MessageLifecycleManager",
+    "NavigationManager",
+    "OperationContext",
+    "OperationStatus",
+    "ProcessManager",
+    "ProgressManager",
 ]

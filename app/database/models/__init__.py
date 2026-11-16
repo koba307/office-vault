@@ -882,3 +882,18 @@ class Invite(Base):
         PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=True
     )
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class MaxAccountIssue(Base):
+    """Выдача MAX-аккаунта: один файл выдаётся ровно один раз."""
+
+    __tablename__ = "max_account_issues"
+
+    id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
+    file_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("files.id", ondelete="CASCADE"), unique=True, nullable=False
+    )
+    user_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True), ForeignKey("users.id"), nullable=False, index=True
+    )
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

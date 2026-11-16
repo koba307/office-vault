@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+
 from aiogram.fsm.context import FSMContext
 
 NAV_STACK_KEY = "nav_stack"

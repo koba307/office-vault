@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from .navigation import NavigationManager
-
 
 def _is_main_menu(menu_id: str | None) -> bool:
     return menu_id in (None, "main", "menu:main")

@@ -5,7 +5,6 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import (
     BufferedInputFile,
     CallbackQuery,
@@ -14,6 +13,7 @@ from aiogram.types import (
     Message,
 )
 
+from app.bot.keyboards.layout import smart_layout
 from app.bot.keyboards.pagination import confirm_keyboard
 from app.database.models import File, PermissionCode, RoleCode, ScanStatus, User
 from app.database.session import async_session

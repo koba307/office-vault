@@ -3,11 +3,11 @@ from uuid import UUID
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from app.bot.keyboards.layout import smart_layout
 from app.database.models import Role, RoleCode, User, UserStatus
 from app.database.session import async_session
 from app.services.auth.admin import (

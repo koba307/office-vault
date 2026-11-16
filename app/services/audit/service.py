@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime, UTC
-from uuid import UUID, uuid4
+from datetime import UTC, datetime
 from typing import Any
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

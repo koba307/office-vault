@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 from aiogram import Bot
 from sqlalchemy import select
@@ -88,6 +88,6 @@ async def send_notification(
         try:
             await bot.send_message(chat_id=user.telegram_id, text=safe_text)
             sent += 1
-        except Exception:  # noqa: BLE001 — недоступный чат не должен ронять рассылку
+        except Exception:  # noqa: BLE001, S112 — недоступный чат не должен ронять рассылку
             continue
     return sent

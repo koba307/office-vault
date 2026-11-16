@@ -9,7 +9,6 @@ from uuid import UUID
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
@@ -17,6 +16,7 @@ from aiogram.types import (
     Message,
 )
 
+from app.bot.keyboards.layout import smart_layout
 from app.database.models import PermissionCode
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active

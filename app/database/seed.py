@@ -131,6 +131,22 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
             )
     await session.flush()
 
+    # Подкатегория MAX внутри «2й Этап» (выдача MAX-аккаунтов).
+    max_category = categories_by_code.get("max")
+    if max_category is None:
+        second_stage = categories_by_code["second_stage"]
+        max_category = Category(
+            code="max",
+            name="MAX",
+            parent_id=second_stage.id,
+            category_type="subcategory",
+            sort_order=90,
+            status="ACTIVE",
+        )
+        session.add(max_category)
+        await session.flush()
+        categories_by_code["max"] = max_category
+
     result = await session.execute(select(CategoryPermission))
     category_permissions = {entry.category_id: entry for entry in result.scalars().all()}
     for code, _, _ in CATEGORIES:
@@ -140,6 +156,13 @@ async def _seed_categories_and_groups(session: AsyncSession) -> None:
             session.add(
                 CategoryPermission(category_id=category.id, access_mode=AccessMode.GROUP)
             )
+    max_permission = category_permissions.get(max_category.id)
+    if max_permission is None:
+        session.add(
+            CategoryPermission(
+                category_id=max_category.id, access_mode=AccessMode.ALL_EMPLOYEES
+            )
+        )
 
     result = await session.execute(select(Group))
     groups_by_code = {group.code: group for group in result.scalars().all()}

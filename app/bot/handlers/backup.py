@@ -1,11 +1,10 @@
-from uuid import UUID
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery
 
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
-from app.services.backup.service import create_backup, list_backups, verify_backup
+from app.services.backup.service import create_backup, verify_backup
 
 router = Router()
 

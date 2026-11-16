@@ -9,7 +9,6 @@ import subprocess
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 from uuid import UUID, uuid4
 
 from cryptography.fernet import Fernet
@@ -65,8 +64,8 @@ async def create_backup(
             host, port = hostport, "5432"
         env["PGPASSWORD"] = password
 
-        with open(dump_path, "wb") as f:
-            subprocess.run(
+        with open(dump_path, "wb") as f:  # noqa: ASYNC230
+            subprocess.run(  # noqa: ASYNC221
                 ["pg_dump", "-h", host, "-p", port, "-U", user, "-d", dbname, "-F", "p"],
                 stdout=f,
                 check=True,
@@ -75,14 +74,14 @@ async def create_backup(
 
         # Архив
         archive_path = tmpdir / "backup.tar.gz"
-        with open(archive_path, "wb") as f:
+        with open(archive_path, "wb") as f:  # noqa: ASYNC230
             # tar database.sql (+ config)
             members = ["database.sql"]
             if include_config:
                 cfg = tmpdir / "config.env"
                 cfg.write_text("APP=office-vault\n", encoding="utf-8")
                 members.append("config.env")
-            subprocess.run(
+            subprocess.run(  # noqa: ASYNC221
                 ["tar", "-czf", str(archive_path), "-C", str(tmpdir), *members],
                 check=True,
             )
@@ -90,7 +89,7 @@ async def create_backup(
         raw = archive_path.read_bytes()
         encrypted = _fernet().encrypt(raw)
         storage_key = f"backups/{backup.id}.enc"
-        bucket = store_object(encrypted, storage_key, "application/octet-stream")
+        store_object(encrypted, storage_key, "application/octet-stream")
 
         sha = hashlib.sha256(encrypted).hexdigest()
         backup.storage_key = storage_key
@@ -103,7 +102,7 @@ async def create_backup(
 
         await _prune_old_backups(session)
         return backup
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         backup.status = JobStatus.FAILED
         backup.finished_at = datetime.now(UTC)
         await session.commit()
@@ -132,7 +131,7 @@ async def _prune_old_backups(session: AsyncSession, keep: int = 5) -> None:
 
             if old.storage_key:
                 remove_objects("office-vault", {old.storage_key})
-        except Exception:  # noqa: BLE001
+        except Exception:  # noqa: BLE001, S110
             pass
         await session.delete(old)
     await session.commit()
@@ -173,7 +172,6 @@ async def restore_backup(session: AsyncSession, backup_id: UUID | str) -> str:
     if not await verify_backup(session, backup.id):
         raise ValueError("Контрольная сумма бэкапа не совпадает.")
 
-    from app.services.files.service import get_minio_client
 
     client = get_minio_client()
     response = client.get_object("office-vault", backup.storage_key)
@@ -188,7 +186,7 @@ async def restore_backup(session: AsyncSession, backup_id: UUID | str) -> str:
     try:
         archive = tmpdir / "backup.tar.gz"
         archive.write_bytes(raw)
-        subprocess.run(["tar", "-xzf", str(archive), "-C", str(tmpdir)], check=True)
+        subprocess.run(["tar", "-xzf", str(archive), "-C", str(tmpdir)], check=True)  # noqa: ASYNC221
         dump = tmpdir / "database.sql"
         if not dump.exists():
             raise ValueError("В архиве нет database.sql.")
@@ -202,8 +200,8 @@ async def restore_backup(session: AsyncSession, backup_id: UUID | str) -> str:
 
         env = os.environ.copy()
         env["PGPASSWORD"] = password
-        with open(dump, "rb") as f:
-            subprocess.run(
+        with open(dump, "rb") as f:  # noqa: ASYNC230
+            subprocess.run(  # noqa: ASYNC221
                 ["psql", "-h", host, "-p", port, "-U", user, "-d", dbname],
                 stdin=f,
                 check=True,

@@ -3,7 +3,6 @@ from html import escape
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.handlers.menu import (
@@ -11,6 +10,7 @@ from app.bot.handlers.menu import (
     category_content_keyboard,
     category_emoji,
 )
+from app.bot.keyboards.layout import smart_layout
 from app.database.models import Category
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id

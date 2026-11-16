@@ -11,11 +11,11 @@ import re
 from uuid import UUID
 
 from aiogram import F, Router
-from app.bot.keyboards.layout import smart_layout
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import func, select
 
 from app.bot.handlers.menu import PAGE_SIZE, STALE_TEXT, breadcrumbs, category_emoji
+from app.bot.keyboards.layout import smart_layout
 from app.bot.keyboards.pagination import confirm_keyboard, pagination_keyboard
 from app.database.models import Category, File, Record, RecordType, User
 from app.database.session import async_session
