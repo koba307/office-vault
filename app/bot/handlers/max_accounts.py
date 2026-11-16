@@ -138,7 +138,7 @@ async def max_upload_file(message: Message, state: FSMContext) -> None:
         except ValueError as exc:
             await message.answer(str(exc))
             return
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.exception("MAX upload failed")
             await message.answer(f"Ошибка загрузки: {exc}")
             return
