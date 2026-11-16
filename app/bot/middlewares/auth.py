@@ -24,6 +24,8 @@ class AuthMiddleware(BaseMiddleware):
         telegram_id = None
         if isinstance(event, (Message, CallbackQuery)) and event.from_user:
             telegram_id = event.from_user.id
+            if isinstance(event, CallbackQuery):
+                logger.info("callback received: %s from %s", event.data, telegram_id)
 
         if telegram_id is None:
             return await handler(event, data)
