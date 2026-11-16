@@ -1,5 +1,7 @@
 from uuid import UUID
 
+import logging
+
 from aiogram import F, Router
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -9,10 +11,13 @@ from app.services.auth.permissions import get_user_by_telegram_id
 
 router = Router()
 
+logger = logging.getLogger(__name__)
+
 
 @router.callback_query(F.data.startswith("rbac:user:"))
 async def rbac_user_roles(callback: CallbackQuery) -> None:
     await callback.answer()
+    logger.info("rbac_user_roles called: %s", callback.data)
     uid = (callback.data or "").split(":")[-1]
     async with async_session() as session:
         me = await get_user_by_telegram_id(session, callback.from_user.id)
@@ -164,3 +169,25 @@ async def rbac_toggle_category(callback: CallbackQuery) -> None:
         await session.commit()
     callback.data = f"rbac:category:{code}"
     await rbac_category_roles(callback)
+
+
+from aiogram.filters import Command
+
+@router.message(Command("rbac"))
+async def rbac_command(message: Message, state: FSMContext) -> None:
+    parts = (message.text or "").split()
+    if len(parts) < 2:
+        await message.answer("Использование: /rbac <user_id>")
+        return
+    uid = parts[1]
+    callback = type("C", (), {})()
+    callback.from_user = type("U", (), {"id": message.from_user.id})()
+    callback.message = message
+    callback.data = f"rbac:user:{uid}"
+    async def answer(*a, **k):
+        return None
+    callback.answer = answer
+    async def edit_text(*a, **k):
+        return await message.answer(*a, **k)
+    callback.message.edit_text = edit_text
+    await rbac_user_roles(callback)
