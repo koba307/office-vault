@@ -388,11 +388,34 @@ async def import_records(
 
         title, record_type, description, fields, tags = _split_row(row)
         if not title:
-            title = f"Строка {index}"
+            failed += 1
+            errors.append(RowError(index, "title", "Название обязательно."))
+            if stored_errors < MAX_STORED_ERRORS:
+                db_errors.append(
+                    ImportError(
+                        job_id=identifier,
+                        row_number=index,
+                        error="Название обязательно."[:2000],
+                        raw_data={key: str(value)[:500] for key, value in row.items()},
+                    )
+                )
+                stored_errors += 1
+            continue
         title_key = title.casefold()
         if check_duplicates and (title_key in existing_titles or title_key in seen_titles):
             skipped += 1
+            failed += 1
             errors.append(RowError(index, "title", "Дубликат названия — строка пропущена."))
+            if stored_errors < MAX_STORED_ERRORS:
+                db_errors.append(
+                    ImportError(
+                        job_id=identifier,
+                        row_number=index,
+                        error="Дубликат названия — строка пропущена."[:2000],
+                        raw_data={key: str(value)[:500] for key, value in row.items()},
+                    )
+                )
+                stored_errors += 1
             continue
         seen_titles.add(title_key)
 

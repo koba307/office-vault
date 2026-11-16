@@ -90,4 +90,4 @@ def test_alembic_has_one_expected_head():
     project_root = Path(__file__).resolve().parents[1]
     config = Config(str(project_root / "alembic.ini"))
     config.set_main_option("script_location", str(project_root / "app/database/migrations"))
-    assert ScriptDirectory.from_config(config).get_heads() == ["0008"]
+    assert ScriptDirectory.from_config(config).get_heads() == ["0009"]

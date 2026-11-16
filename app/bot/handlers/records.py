@@ -1156,6 +1156,8 @@ async def render_record_card(
         tags = ", ".join(link.tag.name for link in record.tags if link.tag)
         lines += ["", f"🏷 {_escape(tags)}"]
     buttons.append([_favorite_button(record.id, is_fav)])
+    if not can_edit:
+        buttons.append([_button("📎 Вложения", f"record:files:{record.id}")])
     if record.record_type == RecordType.FILES:
         buttons.append([_button("⬇️ Скачать файл", f"record:download:{record.id}")])
     if can_edit:
@@ -1276,34 +1278,42 @@ async def download_file(callback: CallbackQuery) -> None:
         if not await is_user_active(user):
             await callback.answer("Нет доступа", show_alert=True)
             return
-        if not await _has_permission(session, user, "DOWNLOAD", "record", rid):
-            await callback.answer("Нет прав на скачивание", show_alert=True)
+        if not await _has_permission(session, user, "VIEW", "record", rid):
+            await callback.answer("Нет доступа к записи", show_alert=True)
             return
         record = await get_record(session, rid)
         if not record:
             await callback.answer("Запись не найдена")
             return
-        field_map = {field.field_key: field.value_text for field in record.fields}
-        bucket = field_map.get("bucket") or "office-vault"
-        object_name = field_map.get("object_name")
-        filename = field_map.get("filename") or record.title
-        if not object_name:
+        files = await list_attachments(session, rid)
+        if not files:
             await callback.answer("Файл не найден")
             return
+        target = files[0]
+        if target.deleted_at is not None:
+            await callback.answer("Файл не найден", show_alert=True)
+            return
+        if not await _has_permission(session, user, "DOWNLOAD", "file", target.id):
+            await callback.answer("Нет прав на скачивание", show_alert=True)
+            return
+        bucket, storage_key, filename = target.bucket, target.storage_key, target.original_name
+        await log_audit(session, user.id, "DOWNLOAD_FILE", "File", str(target.id))
+
+    from aiogram.types import BufferedInputFile
 
     from app.services.files.service import get_minio_client
 
-    client = get_minio_client()
     try:
-        response = client.get_object(bucket, object_name)
-        data = response.read()
-        response.close()
-        response.release_conn()
+        client = get_minio_client()
+        response = client.get_object(bucket, storage_key)
+        try:
+            data = response.read()
+        finally:
+            response.close()
+            response.release_conn()
     except Exception as exc:  # noqa: BLE001 — ошибка хранилища показывается пользователю
         await callback.answer(f"Ошибка скачивания: {exc}", show_alert=True)
         return
-
-    from aiogram.types import BufferedInputFile
 
     await callback.message.answer_document(
         BufferedInputFile(data, filename=filename),

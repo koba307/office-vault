@@ -377,9 +377,15 @@ async def test_import_job_lifecycle(db_session):
     with pytest.raises(ImportJobError):
         await import_records(db_session, job_id, {}, rows=rows)
 
-    from sqlalchemy import delete
 
-    from app.database.models import Category, ImportError, ImportJob, Record, RecordField, RecentRecord
+    from app.database.models import (
+        Category,
+        ImportError,
+        ImportJob,
+        RecentRecord,
+        Record,
+        RecordField,
+    )
 
     await db_session.execute(delete(ImportError).where(ImportError.job_id.in_([first_job_id, job_id])))
     await db_session.execute(delete(ImportJob).where(ImportJob.id.in_([first_job_id, job_id])))

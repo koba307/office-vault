@@ -277,3 +277,5 @@
 - `896ad1c` — remove leftover dead code in import handler.
 - `3ea97bd` — add TZ document, fix Docker build, use RustFS-compatible S3 storage.
 - `095d599` — add full TZ v2.0 and gap analysis.
+
+- Phase 08 marked GITHUB_BACKUP_VERIFIED: import/export pipeline, formats, preview, mapping, background jobs, progress, reports; tests green.

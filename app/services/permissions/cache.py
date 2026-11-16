@@ -15,14 +15,10 @@ logger = logging.getLogger(__name__)
 CACHE_TTL_SECONDS = 60
 KEY_PREFIX = "permissions:context:"
 
-_client: Redis | None = None
-
-
 def _redis() -> Redis:
-    global _client
-    if _client is None:
-        _client = Redis.from_url(settings.redis_url, decode_responses=True)
-    return _client
+    # Клиент создаётся на каждый вызов, чтобы не привязывать пул соединений
+    # Redis к одному event loop (важно для тестов и фоновых воркеров).
+    return Redis.from_url(settings.redis_url, decode_responses=True)
 
 
 def _key(user_id: UUID) -> str:

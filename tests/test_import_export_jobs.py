@@ -8,8 +8,6 @@
 
 import asyncio
 import os
-import tempfile
-from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -30,13 +28,11 @@ from app.database.models import (
     Role,
     RoleCode,
     User,
-    UserStatus,
 )
 from app.services.import_export import export_jobs as export_jobs_service
 from app.services.import_export import jobs as import_export_jobs
 from app.services.import_export import service as import_export_service
 from app.workers import export_worker, import_worker
-
 
 # ---------------------------------------------------------------------------
 # Чистые тесты: API воркеров и служб (без БД)
@@ -208,7 +204,11 @@ async def _store_import_file(monkeypatch, session, user, data: bytes, filename: 
         storage[key] = bytes(payload)
         return "test-bucket"
 
+    def fake_read(bucket, key):
+        return storage[key]
+
     monkeypatch.setattr(import_export_jobs, "store_object", fake_store)
+    monkeypatch.setattr(import_worker, "read_object", fake_read)
     file = await import_export_jobs.store_import_source(
         session, user=user, data=data, filename=filename, content_type="text/csv"
     )
@@ -227,7 +227,6 @@ async def _cleanup_import(session, job_id, user_id, category_ids, record_ids=Non
     if category_ids:
         await session.execute(delete(Category).where(Category.id.in_(list(category_ids))))
     await session.execute(delete(File).where(File.uploaded_by == user_id))
-    await session.execute(delete(User).where(User.id == user_id))
     await session.commit()
 
 
@@ -247,6 +246,7 @@ async def test_import_job_end_to_end(db_session, monkeypatch):
     assert "done" in result
 
     refreshed = await db_session.get(ImportJob, job.id)
+    await db_session.refresh(refreshed)
     assert refreshed.status == JobStatus.COMPLETED
     assert refreshed.total_rows == 2
     assert refreshed.success_rows == 2
@@ -298,6 +298,7 @@ async def test_import_job_reports_errors(db_session, monkeypatch):
     assert "done" in result
 
     refreshed = await db_session.get(ImportJob, job.id)
+    await db_session.refresh(refreshed)
     assert refreshed.status == JobStatus.COMPLETED
     assert refreshed.success_rows == 1
     assert refreshed.failed_rows >= 2
@@ -359,6 +360,7 @@ async def test_export_job_end_to_end(db_session, monkeypatch):
     assert "done" in result
 
     refreshed = await db_session.get(ExportJob, job.id)
+    await db_session.refresh(refreshed)
     assert refreshed.status == JobStatus.COMPLETED
     opts = refreshed.filters or {}
     assert opts.get("storage_key")

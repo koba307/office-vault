@@ -14,6 +14,8 @@
 """
 
 import asyncio
+import tempfile
+from pathlib import Path
 from uuid import UUID
 
 from arq.connections import create_pool
@@ -23,6 +25,8 @@ from app.database.session import async_session
 from app.services.auth.permissions import log_audit
 from app.services.files.service import read_object
 from app.services.import_export import export_jobs as export_jobs_service
+
+EXPORT_TEMP_ROOT = Path(tempfile.gettempdir()) / "office_vault_exports"
 
 
 async def enqueue_export_job(job_id) -> bool:
@@ -109,10 +113,8 @@ async def cleanup_export_temp(ctx=None, max_age_seconds: int = 6 * 3600) -> str:
     Приватный каталог временных файлов экспорта очищается от файлов старше
     ``max_age_seconds``; каталог создаётся при необходимости.
     """
-    import tempfile
-    from pathlib import Path
 
-    root = Path(tempfile.gettempdir()) / "office_vault_exports"
+    root = EXPORT_TEMP_ROOT
     if not root.is_dir():
         return "No export temp directory"
     import time
