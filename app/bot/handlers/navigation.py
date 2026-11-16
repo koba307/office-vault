@@ -45,3 +45,12 @@ async def cancel_command(message: Message, state: FSMContext) -> None:
 @stale_router.callback_query(F.data)
 async def stale_callback(callback: CallbackQuery) -> None:
     await callback.answer(STALE_TEXT, show_alert=True)
+
+
+from app.bot.system.navigation import NavigationManager
+
+
+@router.callback_query(F.data == "sys:nav:back")
+async def system_nav_back(callback: CallbackQuery, state: FSMContext) -> None:
+    await NavigationManager.go_back(state)
+    await callback.answer("Назад")

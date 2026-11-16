@@ -48,6 +48,7 @@ async def main() -> None:
     from app.bot.middlewares.auth import AuthMiddleware
     from app.bot.middlewares.permissions import PermissionMiddleware
     from app.bot.middlewares.throttling import ThrottlingMiddleware
+    from app.bot.system.middleware import SystemMiddleware
 
     # Middleware stack: throttling → auth → permissions → audit
     for router in (
@@ -95,6 +96,7 @@ async def main() -> None:
     dp.include_router(profile.router)
     dp.include_router(navigation.stale_router)
 
+    dp.update.middleware(SystemMiddleware())
     logger.info("Starting OFFICE VAULT bot...")
     await dp.start_polling(bot)
 
