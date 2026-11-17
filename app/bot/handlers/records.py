@@ -1138,7 +1138,7 @@ async def render_record_card(
 
     lines = [f"📄 <b>{_escape(record.title)}</b>", f"Тип: {_type_title(record.record_type)}"]
     if record.description:
-        lines += ["", _escape(record.description)]
+        lines += ["", record.description or ""]
     lines.append("")
     buttons: list[list[InlineKeyboardButton]] = []
     for index, field in enumerate(sorted(record.fields, key=lambda item: (item.sort_order, item.field_key))):

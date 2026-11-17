@@ -475,7 +475,10 @@ async def render_records_list(
         for record in records
     ]
 
-    if can_manage_categories(user) and record_type != "ALL":
+    if category.code.startswith("bots"):
+        buttons = []
+
+    if can_manage_categories(user) and record_type != "ALL" and not category.code.startswith("bots"):
         buttons.append(
             [
                 InlineKeyboardButton(
@@ -487,23 +490,25 @@ async def render_records_list(
 
     other_sort = SORT_NAME if sort == SORT_DATE else SORT_DATE
     sort_title = "🔤 По названию" if sort == SORT_DATE else "🕘 По дате"
-    buttons.append(
-        [
-            InlineKeyboardButton(
-                text=sort_title,
-                callback_data=(
-                    f"menu:list:{category.code}:{record_type}:{other_sort}:0"
-                ),
-            )
-        ]
-    )
+    if not category.code.startswith("bots"):
+        buttons.append(
+            [
+                InlineKeyboardButton(
+                    text=sort_title,
+                    callback_data=(
+                        f"menu:list:{category.code}:{record_type}:{other_sort}:0"
+                    ),
+                )
+            ]
+        )
 
     from app.bot.keyboards.pagination import pagination_keyboard
 
-    pagination = pagination_keyboard(
-        total, page, PAGE_SIZE, f"menu:list:{category.code}:{record_type}:{sort}"
-    )
-    buttons.extend(pagination.inline_keyboard)
+    if not category.code.startswith("bots"):
+        pagination = pagination_keyboard(
+            total, page, PAGE_SIZE, f"menu:list:{category.code}:{record_type}:{sort}"
+        )
+        buttons.extend(pagination.inline_keyboard)
     buttons.append(
         [
             InlineKeyboardButton(
