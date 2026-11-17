@@ -1,5 +1,6 @@
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
@@ -32,3 +33,19 @@ async def profile_view(callback: CallbackQuery) -> None:
     kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:main")]])
     await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
     await callback.answer()
+
+
+@router.message(Command("profile"))
+async def profile_command(message: Message) -> None:
+
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, message.from_user.id)
+        if not await is_user_active(user):
+            await message.answer("Нет доступа.")
+            return
+    await message.answer(
+        f"👤 <b>Профиль</b>\nИмя: {user.display_name or user.telegram_id}\n"
+        f"Роль: <code>{user.role.value}</code>\n"
+        f"Telegram ID: <code>{user.telegram_id}</code>",
+        parse_mode="HTML",
+    )

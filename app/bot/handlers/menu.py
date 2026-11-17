@@ -35,7 +35,7 @@ from app.services.records.service import get_record
 
 router = Router()
 
-MAIN_TEXT = "🏢 <b>OFFICE VAULT</b>\n\nВыберите рабочий раздел:"
+MAIN_TEXT = "🏢 <b>OFFICE VAULT</b>\nКорпоративное хранилище данных\n\nВыберите раздел для работы:"
 STALE_TEXT = "Кнопка устарела. Откройте меню заново."
 
 PAGE_SIZE = 10

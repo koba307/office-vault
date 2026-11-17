@@ -1,7 +1,7 @@
 import html
 
 from aiogram import Router
-from aiogram.filters import CommandStart
+from aiogram.filters import Command, CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from app.bot.handlers.menu import get_main_menu_keyboard
@@ -57,10 +57,10 @@ def blocked_text(name: str) -> str:
 def welcome_text(name: str, user: User) -> str:
     """Приветствие активного сотрудника: роль показывается по-человечески."""
     return (
-        "🏢 <b>OFFICE VAULT</b>\n\n"
-        f"Добро пожаловать, {name}.\n"
-        f"Роль: <b>{role_title(user.role)}</b>\n\n"
-        "Выберите рабочий раздел:"
+        "🏢 <b>OFFICE VAULT</b>\n"
+        "Корпоративное хранилище данных\n\n"
+        f"Добро пожаловать, {name}! Выберите раздел для работы.\n"
+        f"Роль: <b>{role_title(user.role)}</b>"
     )
 
 
@@ -87,3 +87,27 @@ async def cmd_start(message: Message) -> None:
             inline_keyboard=[[InlineKeyboardButton(text="Зарегистрировать", callback_data="reg:start")]]
         )
         await message.answer(invitation_text(user_id, name), reply_markup=kb)
+
+
+@router.message(Command("help"))
+async def cmd_help(message: Message) -> None:
+    await message.answer(
+        "🏢 <b>OFFICE VAULT — справка</b>\n\n"
+        "• /start — главное меню\n"
+        "• /cancel — отменить действие\n"
+        "• /profile — мой профиль\n"
+        "• /max_upload — загрузка MAX-аккаунтов (суперадмин)\n"
+        "• /about — о боте\n\n"
+        "Доступ к разделам назначается по роли.",
+        parse_mode="HTML",
+    )
+
+
+@router.message(Command("about"))
+async def cmd_about(message: Message) -> None:
+    await message.answer(
+        "🏢 <b>OFFICE VAULT</b>\n"
+        "Корпоративное хранилище данных.\n\n"
+        "Версия 1.0 · Дизайн-пакет v1.0 · Концепция «архитектура / тёплый минимализм».",
+        parse_mode="HTML",
+    )
