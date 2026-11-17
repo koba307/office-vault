@@ -460,7 +460,11 @@ async def render_records_list(
     else:
         for record in records:
             description = (record.description or "").strip()
-            lines.append(f"• {record.title}" + (f" — {description}" if description else ""))
+            title = html.escape(record.title)
+            if description:
+                lines.append(f"• {title}\n{description}")
+            else:
+                lines.append(f"• {title}")
 
     buttons = [
         [
@@ -512,6 +516,7 @@ async def render_records_list(
     await callback.message.edit_text(
         "\n".join(lines) + f"\n\nСортировка: {SORT_TITLES[sort]}",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons)),
+        parse_mode="HTML",
     )
     return True
 

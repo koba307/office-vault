@@ -304,7 +304,7 @@ BOT_ITEMS = {
         (5, "@kodysu_checker_v2_bot", "Проверка номеров телефонов через kody.su: оператор, регион"),
         (7, "@SangMata_BOT", "История имён и юзернеймов пользователей"),
         (13, "@ins_lo_v2_bot", "Выгрузка открытых Instagram-профилей в ZIP"),
-        (0, "SAURON Сайт", "ссылка: http://sauron.info; логин: admin_it_dp; пароль: QhXqvANrebkygjan"),
+        (0, "SAURON Сайт", "Ссылка\n<code>http://sauron.info</code>\nЛогин\n<code>admin_it_dp</code>\nПароль\n<code>QhXqvANrebkygjan</code>"),
     ],
     "bots_misc": [
         (4, "@gruzhki_bot", "Создание видеокружков из обычных видео"),
@@ -324,8 +324,8 @@ BOT_ITEMS = {
 }
 
 VPN_ITEMS = [
-    ("VPN аккаунт 1", "Почта: folgavolosata@gmail.com; Пароль: Work8998!"),
-    ("VPN аккаунт 2", "Почта: meduzavkisile@gmail.com; Пароль: 83vaYLXq"),
+    ("VPN аккаунт 1", "Аккаунт 1\n<code>folgavolosata@gmail.com</code>\n<code>Work8998!</code>"),
+    ("VPN аккаунт 2", "Аккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>"),
 ]
 
 BOT_CATEGORY_DEFS = [
