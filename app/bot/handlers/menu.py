@@ -284,8 +284,11 @@ async def get_main_menu_keyboard(
             all_categories = (
                 await session.execute(select(Category).order_by(Category.sort_order, Category.name))
             ).scalars().all()
+            role_data_codes = {"holodka", "second_stage", "closers"}
             for cat in all_categories:
                 if cat.status != "ACTIVE":
+                    continue
+                if getattr(user, "role", None) == RoleCode.EMPLOYEE and cat.code in role_data_codes:
                     continue
                 if not await PermissionService.can(user, "VIEW", "category", cat.id, session):
                     continue

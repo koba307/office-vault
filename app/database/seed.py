@@ -1,4 +1,5 @@
 import logging
+from uuid import uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +14,8 @@ from app.database.models import (
     Group,
     Permission,
     PermissionCode,
+    Record,
+    RecordType,
     Role,
     RoleCode,
     RolePermission,
@@ -293,6 +296,115 @@ async def _link_user_role(session: AsyncSession, user: User) -> None:
         user.role_id = role.id
 
 
+
+BOT_ITEMS = {
+    "bots_data": [
+        (2, "@itb_inform_r4_bot", "«Информатор» — поиск данных, заявки и выдача доступа"),
+        (3, "@saur_priv_r3_bot", "SAURON API Search Bot — платный поиск данных через API"),
+        (5, "@kodysu_checker_v2_bot", "Проверка номеров телефонов через kody.su: оператор, регион"),
+        (7, "@SangMata_BOT", "История имён и юзернеймов пользователей"),
+        (13, "@ins_lo_v2_bot", "Выгрузка открытых Instagram-профилей в ZIP"),
+        (0, "SAURON Сайт", "ссылка: http://sauron.info; логин: admin_it_dp; пароль: QhXqvANrebkygjan"),
+    ],
+    "bots_misc": [
+        (4, "@gruzhki_bot", "Создание видеокружков из обычных видео"),
+        (6, "@Getmyid_bot", "Получение Telegram ID пользователя или чата"),
+        (8, "@tg_media_export_bot", "Выгрузка медиа из закрытых каналов/групп, сборка EXE"),
+    ],
+    "bots_second_stage": [
+        (11, "@gosuslugi_sequre_v2_bot", "Госуслуги Support — защищённый канал поддержки портала"),
+        (10, "@skriny_overlay_v2_bot", "Вставка скриншота панели в шаблон (оверлей)"),
+    ],
+    "bots_closers": [
+        (1, "@mostbot2_bot", "Сбор данных с Android-устройств (ScanDocs): контакты, SMS, звонки, файлы"),
+    ],
+    "bots_superadmin": [
+        (12, "@up_mob_v2_bot", "Пополнение мобильных счетов, проверка статуса платежей"),
+    ],
+}
+
+BOT_CATEGORY_DEFS = [
+    ("bots", "Боты", None),
+    ("bots_data", "Пробивы/Данные", "bots"),
+    ("bots_misc", "Разные", "bots"),
+    ("bots_second_stage", "2 этап", "bots"),
+    ("bots_closers", "Клоузеры", "bots"),
+    ("bots_superadmin", "Суперадмин", "bots"),
+]
+
+BOT_CATEGORY_ROLES = {
+    "bots_data": ["holodka", "second_stage", "closers", "COACH"],
+    "bots_misc": ["holodka", "second_stage", "closers", "COACH"],
+    "bots_second_stage": ["second_stage", "COACH"],
+    "bots_closers": ["closers", "COACH"],
+}
+
+
+async def _seed_bot_directory(session: AsyncSession) -> None:
+    """Создаёт справочник ботов OFFICE VAULT (groups/subgroups + links)."""
+    superadmin = (
+        await session.execute(select(User).where(User.role == RoleCode.SUPERADMIN).limit(1))
+    ).scalar_one_or_none()
+    if superadmin is None:
+        return
+    categories = {c.code: c for c in (await session.execute(select(Category))).scalars().all()}
+    for code, name, parent_code in BOT_CATEGORY_DEFS:
+        if code in categories:
+            continue
+        parent = categories.get(parent_code) if parent_code else None
+        cat = Category(
+            code=code,
+            name=name,
+            parent_id=parent.id if parent else None,
+            category_type="subcategory" if parent else "root",
+            sort_order=100,
+            status="ACTIVE",
+        )
+        session.add(cat)
+        await session.flush()
+        categories[code] = cat
+
+    roles = {r.code: r for r in (await session.execute(select(Role))).scalars().all()}
+    existing_cr = {
+        (r.category_id, r.role_id)
+        for r in (await session.execute(select(CategoryRole))).scalars().all()
+    }
+    for cat_code, role_codes in BOT_CATEGORY_ROLES.items():
+        cat = categories.get(cat_code)
+        if cat is None:
+            continue
+        for role_code in role_codes:
+            role = roles.get(role_code)
+            if role is None:
+                continue
+            if (cat.id, role.id) in existing_cr:
+                continue
+            session.add(CategoryRole(category_id=cat.id, role_id=role.id))
+            existing_cr.add((cat.id, role.id))
+
+    existing_titles = set((await session.execute(select(Record.title))).scalars().all())
+    for cat_code, items in BOT_ITEMS.items():
+        cat = categories.get(cat_code)
+        if cat is None:
+            continue
+        for num, username, description in items:
+            title = f"{num}. {username}" if num else username
+            if title in existing_titles:
+                continue
+            session.add(
+                Record(
+                    id=uuid4(),
+                    category_id=cat.id,
+                    record_type=RecordType.LINKS,
+                    title=title,
+                    description=description,
+                    status="ACTIVE",
+                    created_by=superadmin.id,
+                )
+            )
+            existing_titles.add(title)
+    await session.commit()
+
 async def seed_system_data(session: AsyncSession) -> None:
     permissions = await _seed_permissions(session)
     await _seed_roles(session, permissions)
@@ -334,6 +446,7 @@ async def seed_system_data(session: AsyncSession) -> None:
     users = result.scalars().all()
     for user in users:
         await _link_user_role(session, user)
+    await _seed_bot_directory(session)
 
     await session.commit()
     logger.info("System data seeded: roles, permissions, categories, groups, SUPERADMIN")
