@@ -90,8 +90,8 @@ async def main() -> None:
     # archive.router раньше menu.router: полный экран архива Phase 05
     # перекрывает упрощённый список menu:archive из Phase 04.
     dp.include_router(archive.router)
-    dp.include_router(menu.router)
     dp.include_router(max_accounts.router)
+    dp.include_router(menu.router)
     dp.include_router(categories.router)
     dp.include_router(records.router)
     dp.include_router(search.router)
