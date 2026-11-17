@@ -293,7 +293,7 @@ async def get_main_menu_keyboard(
                 if getattr(user, "role", None) == RoleCode.EMPLOYEE and cat.code in role_data_codes:
                     continue
                 # Контейнеры «Общие» и внутренние разделы ботов не показываем в главном меню.
-                if cat.code == "general" or cat.code.startswith("bots_"):
+                if cat.code in ("general", "vpn") or cat.code.startswith("bots_"):
                     continue
                 if not await PermissionService.can(user, "VIEW", "category", cat.id, session):
                     continue
@@ -493,6 +493,11 @@ async def render_records_list(
             ]
         )
 
+    if category.code == "general":
+        buttons.append(
+            [InlineKeyboardButton(text="VPN аккаунты", callback_data="vpn:accounts")]
+        )
+
     other_sort = SORT_NAME if sort == SORT_DATE else SORT_DATE
     sort_title = "🔤 По названию" if sort == SORT_DATE else "🕘 По дате"
     if not category.code.startswith("bots"):
@@ -529,6 +534,41 @@ async def render_records_list(
         parse_mode="HTML",
     )
     return True
+
+
+@router.callback_query(F.data == "vpn:accounts")
+async def vpn_accounts(callback: CallbackQuery) -> None:
+    await callback.answer()
+    async with async_session() as session:
+        user = await get_user_by_telegram_id(session, callback.from_user.id)
+        if not await is_user_active(user):
+            await callback.answer("Нет доступа", show_alert=True)
+            return
+        vpn = await get_category(session, "vpn")
+        if vpn is None:
+            await callback.answer("Раздел не найден", show_alert=True)
+            return
+        result = await session.execute(
+            select(Record)
+            .where(Record.category_id == vpn.id, Record.status == "ACTIVE")
+            .order_by(Record.title)
+        )
+        records = list(result.scalars().all())
+    lines = ["🔐 <b>VPN аккаунты</b>", ""]
+    for record in records:
+        lines.append(f"<b>{html.escape(record.title)}</b>")
+        if record.description:
+            lines.append(record.description)
+        lines.append("")
+    rows = [
+        [InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:back:menu:main")],
+        [InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")],
+    ]
+    await callback.message.edit_text(
+        "\n".join(lines),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)),
+        parse_mode="HTML",
+    )
 
 
 async def open_screen(callback: CallbackQuery, target: str) -> bool:
