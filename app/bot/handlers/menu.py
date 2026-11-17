@@ -31,7 +31,7 @@ from app.database.session import async_session
 from app.services.auth.permissions import get_user_by_telegram_id, is_user_active
 from app.services.categories import get_category, list_categories
 from app.services.permissions import PermissionService
-from app.services.records.service import get_record, list_records_page
+from app.services.records.service import get_record
 
 router = Router()
 
@@ -324,7 +324,11 @@ async def render_main(callback: CallbackQuery) -> None:
 
 
 async def render_category(callback: CallbackQuery, category_code: str) -> bool:
-    """Рисует раздел: типы информации, подкатегории и управление."""
+    """Раздел сразу показывает данные (без промежуточного меню типов)."""
+    return await render_records_list(callback, category_code, "ALL", SORT_DATE, 0)
+
+
+async def _legacy_render_category(callback: CallbackQuery, category_code: str) -> bool:
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, callback.from_user.id)
         category = await get_category(session, category_code)
@@ -412,14 +416,39 @@ async def render_records_list(
             return False
 
         rtype = None if record_type == "ALL" else RecordType(record_type)
-        records, total = await list_records_page(
-            session,
-            category.code,
-            record_type=rtype,
-            sort="name" if sort == SORT_NAME else "date",
-            offset=page * PAGE_SIZE,
-            limit=PAGE_SIZE,
+        # Включаем записи вложенных подкатегорий, чтобы раздел сразу показывал данные.
+        all_cats = (await session.execute(select(Category))).scalars().all()
+        children_map: dict = {}
+        for c in all_cats:
+            children_map.setdefault(c.parent_id, []).append(c.id)
+        cat_ids = {category.id}
+        queue = [category.id]
+        while queue:
+            current = queue.pop()
+            for child_id in children_map.get(current, []):
+                if child_id not in cat_ids:
+                    cat_ids.add(child_id)
+                    queue.append(child_id)
+
+        conditions = [Record.category_id.in_(cat_ids), Record.status == "ACTIVE"]
+        if rtype is not None:
+            conditions.append(Record.record_type == rtype)
+        total = await session.scalar(select(func.count()).select_from(Record).where(*conditions))
+        order = (
+            func.lower(Record.title).asc()
+            if sort == SORT_NAME
+            else Record.created_at.desc()
         )
+        result = await session.execute(
+            select(Record)
+            .where(*conditions)
+            .options(__import__("sqlalchemy.orm", fromlist=["selectinload"]).selectinload(Record.fields))
+            .order_by(order, Record.id)
+            .offset(page * PAGE_SIZE)
+            .limit(PAGE_SIZE)
+        )
+        records = list(result.scalars().all())
+        total = int(total or 0)
 
     type_title = "📚 Все записи" if record_type == "ALL" else TYPE_TITLES[RecordType(record_type)]
     title = category_title(category.code, category.name)
