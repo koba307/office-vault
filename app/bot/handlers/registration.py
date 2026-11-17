@@ -50,19 +50,15 @@ def _request_markup(request_id: UUID) -> InlineKeyboardMarkup:
 
 
 async def _notify_admins(bot, text: str, request_id: UUID) -> None:
-    ids = [settings.superadmin_telegram_id]
-    async with async_session() as session:
-        result = await session.execute(
-            __import__("sqlalchemy").select(User.telegram_id).where(
-                User.role.in_([RoleCode.SUPERADMIN, RoleCode.COACH])
-            )
+    """Гарантированно уведомляет суперадмина о новой заявке."""
+    try:
+        await bot.send_message(
+            chat_id=settings.superadmin_telegram_id,
+            text=text,
+            reply_markup=_request_markup(request_id),
         )
-        ids.extend(result.scalars().all())
-    for tid in set(ids):
-        try:
-            await bot.send_message(chat_id=tid, text=text, reply_markup=_request_markup(request_id))
-        except Exception:  # noqa: BLE001, S110
-            pass
+    except Exception:  # noqa: BLE001, S110
+        pass
 
 
 @router.callback_query(F.data == "reg:start")
