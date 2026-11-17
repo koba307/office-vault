@@ -51,7 +51,17 @@ async def upload_max_accounts(
     if not accounts:
         raise ValueError("В файле/архиве нет .txt файлов.")
     count = 0
+    seen: set[str] = set()
+    # Уже загруженные аккаунты (по SHA-256) повторно не добавляем.
+    existing = await session.execute(
+        select(File.sha256).where(File.storage_key.like(f"{STORAGE_PREFIX}%"))
+    )
+    seen.update(v for v in existing.scalars().all() if v)
     for name, payload in accounts:
+        digest = hashlib.sha256(payload).hexdigest()
+        if digest in seen:
+            continue
+        seen.add(digest)
         storage_key = f"{STORAGE_PREFIX}{uuid4()}.txt"
         bucket = await asyncio.to_thread(store_object, payload, storage_key, "text/plain")
         file = File(
@@ -62,7 +72,7 @@ async def upload_max_accounts(
             mime_type="text/plain",
             extension="txt",
             size=len(payload),
-            sha256=hashlib.sha256(payload).hexdigest(),
+            sha256=digest,
             scan_status=ScanStatus.CLEAN,
             uploaded_by=user.id,
         )
