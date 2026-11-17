@@ -457,7 +457,8 @@ async def render_records_list(
         lines.append("Записей пока нет.")
     else:
         for record in records:
-            lines.append(f"• {record.title}")
+            description = (record.description or "").strip()
+            lines.append(f"• {record.title}" + (f" — {description}" if description else ""))
 
     buttons = [
         [

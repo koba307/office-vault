@@ -57,8 +57,6 @@ async def max_menu(callback: CallbackQuery) -> None:
         rows.append([InlineKeyboardButton(text="📥 Получить", callback_data="max:get")])
     else:
         text = "📦 <b>MAX</b>\n\nАккаунтов нет."
-    if user.role.value == "SUPERADMIN":
-        rows.append([InlineKeyboardButton(text="📤 Загрузить аккаунты", callback_data="max:upload")])
     rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:back:menu:main")])
     await callback.message.edit_text(text, reply_markup=_markup(rows), parse_mode="HTML")
     await callback.answer()
@@ -158,3 +156,5 @@ async def max_upload_command(message: Message, state: FSMContext) -> None:
             return
     await state.set_state(MaxUpload.waiting_file)
     await message.answer("📤 Отправьте .txt файл или .zip архив с .txt файлами.")
+
+

@@ -323,6 +323,11 @@ BOT_ITEMS = {
     ],
 }
 
+VPN_ITEMS = [
+    ("VPN аккаунт 1", "Почта: folgavolosata@gmail.com; Пароль: Work8998!"),
+    ("VPN аккаунт 2", "Почта: meduzavkisile@gmail.com; Пароль: 83vaYLXq"),
+]
+
 BOT_CATEGORY_DEFS = [
     ("bots", "Боты", None),
     ("vpn", "VPN", "general"),
@@ -426,6 +431,23 @@ async def _seed_bot_directory(session: AsyncSession) -> None:
                     id=uuid4(),
                     category_id=cat.id,
                     record_type=RecordType.LINKS,
+                    title=title,
+                    description=description,
+                    status="ACTIVE",
+                    created_by=superadmin.id,
+                )
+            )
+            existing_titles.add(title)
+    vpn_cat = categories.get("vpn")
+    if vpn_cat is not None:
+        for title, description in VPN_ITEMS:
+            if title in existing_titles:
+                continue
+            session.add(
+                Record(
+                    id=uuid4(),
+                    category_id=vpn_cat.id,
+                    record_type=RecordType.CREDENTIALS,
                     title=title,
                     description=description,
                     status="ACTIVE",
