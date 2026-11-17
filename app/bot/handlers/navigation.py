@@ -15,22 +15,27 @@ stale_router = Router()
 async def main_menu_callback(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await state.clear()
+    chat_id = callback.message.chat.id if callback.message else callback.from_user.id
+    GlobalNavigation.clear(callback.from_user.id, chat_id)
     await render_main(callback)
 
 
 @router.callback_query(F.data.startswith("menu:back"))
 async def back_callback(callback: CallbackQuery) -> None:
     await callback.answer()
-    # Адрес родительского экрана передаётся в самом callback: menu:back:{target}
     data = callback.data or ""
-    target = data.removeprefix("menu:back:") if data.startswith("menu:back:") else ""
-    if not await open_screen(callback, target or "menu:main"):
+    chat_id = callback.message.chat.id if callback.message else callback.from_user.id
+    explicit = data.removeprefix("menu:back:") if data.startswith("menu:back:") else ""
+    target = explicit or GlobalNavigation.back(callback.from_user.id, chat_id) or "menu:main"
+    if not await open_screen(callback, target):
         await render_main(callback)
 
 
 @router.callback_query(F.data == "menu:cancel")
 async def cancel_callback(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
+    chat_id = callback.message.chat.id if callback.message else callback.from_user.id
+    GlobalNavigation.clear(callback.from_user.id, chat_id)
     await render_main(callback)
     await callback.answer("Действие отменено")
 
@@ -49,7 +54,7 @@ async def stale_callback(callback: CallbackQuery) -> None:
     await callback.answer(STALE_TEXT, show_alert=True)
 
 
-from app.bot.system.navigation import NavigationManager
+from app.bot.system.navigation import GlobalNavigation, NavigationManager
 
 
 @router.callback_query(F.data == "sys:nav:back")

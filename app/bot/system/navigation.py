@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from aiogram.fsm.context import FSMContext
 
@@ -60,3 +60,34 @@ class NavigationManager:
     @staticmethod
     async def restore_menu_state(state: FSMContext, menu_id: str, params: dict[str, Any] | None = None) -> None:
         await state.update_data(current_menu=menu_id, menu_params=params or {})
+
+
+class GlobalNavigation:
+    """Простой стек навигации в памяти, общий для всех обработчиков."""
+
+    _stacks: ClassVar[dict[tuple[int, int], list[str]]] = {}
+
+    @classmethod
+    def _key(cls, user_id: int, chat_id: int) -> tuple[int, int]:
+        return (user_id, chat_id)
+
+    @classmethod
+    def push(cls, user_id: int, chat_id: int, screen: str) -> None:
+        key = cls._key(user_id, chat_id)
+        stack = cls._stacks.setdefault(key, [])
+        if not stack or stack[-1] != screen:
+            stack.append(screen)
+
+    @classmethod
+    def back(cls, user_id: int, chat_id: int) -> str | None:
+        key = cls._key(user_id, chat_id)
+        stack = cls._stacks.get(key, [])
+        if len(stack) <= 1:
+            cls._stacks[key] = []
+            return None
+        stack.pop()
+        return stack[-1]
+
+    @classmethod
+    def clear(cls, user_id: int, chat_id: int) -> None:
+        cls._stacks[cls._key(user_id, chat_id)] = []

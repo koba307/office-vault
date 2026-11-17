@@ -1141,18 +1141,15 @@ async def render_record_card(
         lines += ["", record.description or ""]
     lines.append("")
     buttons: list[list[InlineKeyboardButton]] = []
-    for index, field in enumerate(sorted(record.fields, key=lambda item: (item.sort_order, item.field_key))):
-        display = _escape(_clip(format_field_value(
+    for field in sorted(record.fields, key=lambda item: (item.sort_order, item.field_key)):
+        display = format_field_value(
             field.field_type,
             value_text=field.value_text,
             value_json=field.value_json,
             encrypted_value=field.encrypted_value,
-        )))
-        lines.append(f"{_escape(field.field_label)}: {display}")
-        if field.encrypted_value:
-            buttons.append(
-                [_button(f"👁 Показать {_clip(field.field_label, 30)}", f"rr:{record.id}:{index}")]
-            )
+            reveal=True,
+        )
+        lines.append(f"{_escape(field.field_label)}: <code>{_escape(display)}</code>")
     if record.tags:
         tags = ", ".join(link.tag.name for link in record.tags if link.tag)
         lines += ["", f"🏷 {_escape(tags)}"]
