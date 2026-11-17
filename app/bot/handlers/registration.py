@@ -114,7 +114,7 @@ async def reg_role(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=smart_layout(rows)), parse_mode="HTML")
 
 
-@router.callback_query(Registration.confirm, F.data == "reg:cancel")
+@router.callback_query(F.data == "reg:cancel")
 async def reg_cancel(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer("Отменено")
     await state.clear()
@@ -148,9 +148,13 @@ async def _create_request(message_or_callback, state: FSMContext) -> Registratio
     return req
 
 
-@router.callback_query(Registration.confirm, F.data == "reg:confirm")
+@router.callback_query(F.data == "reg:confirm")
 async def reg_confirm(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
+    data = await state.get_data()
+    if not data.get("name") or not data.get("role_code"):
+        await callback.answer("Состояние устарело. Начните регистрацию заново.", show_alert=True)
+        return
     await _create_request(callback, state)
     await callback.message.edit_text("✅ Запрос на регистрацию отправлен администратору. Ожидайте решения.")
 
