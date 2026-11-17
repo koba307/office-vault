@@ -502,7 +502,7 @@ async def render_records_list(
         [
             InlineKeyboardButton(
                 text="⬅️ Назад",
-                callback_data=f"menu:back:menu:category:{category.code}",
+                callback_data="menu:back:menu:main",
             )
         ]
     )
