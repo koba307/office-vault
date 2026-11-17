@@ -21,6 +21,33 @@ def auto_layout(
         current_width += width
     if current:
         rows.append(current)
+    return apply_button_styles(rows)
+
+
+
+def _style_for_text(text: str) -> str | None:
+    t = (text or "").lower()
+    danger = ("удалить", "отклонить", "purge", "удалить окончательно", "сбросить")
+    success = ("подтвердить", "принять", "получить", "сохранить", "создать", "добавить", "зарегистрировать", "одобрить")
+    primary = ("назад", "главное меню", "редактировать", "поиск", "импорт", "экспорт", "загрузить")
+    if any(x in t for x in danger):
+        return "danger"
+    if any(x in t for x in success):
+        return "success"
+    if any(x in t for x in primary):
+        return "primary"
+    return None
+
+
+def apply_button_styles(rows: list[list]) -> list[list]:
+    for row in rows:
+        for btn in row:
+            style = _style_for_text(getattr(btn, "text", ""))
+            if style and getattr(btn, "style", None) is None:
+                try:
+                    btn.style = style
+                except Exception:  # noqa: BLE001, S110
+                    pass
     return rows
 
 
@@ -71,4 +98,4 @@ def smart_layout(rows: list[list] | list) -> list[list]:
         current_width += width
     if current:
         result.append(current)
-    return result
+    return apply_button_styles(result)
