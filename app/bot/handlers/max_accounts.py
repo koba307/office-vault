@@ -54,7 +54,7 @@ async def max_menu(callback: CallbackQuery) -> None:
     rows = []
     if remaining > 0:
         text = f"📦 <b>MAX</b>\n\nДоступно аккаунтов: <b>{remaining}</b>"
-        rows.append([InlineKeyboardButton(text="📥 Получить", callback_data="max:get")])
+        rows.append([InlineKeyboardButton(text="Получить", callback_data="max:get")])
     else:
         text = "📦 <b>MAX</b>\n\nАккаунтов нет."
     rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:back:menu:main")])
