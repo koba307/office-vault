@@ -58,6 +58,7 @@ async def max_menu(callback: CallbackQuery) -> None:
     else:
         text = "📦 <b>MAX</b>\n\nАккаунтов нет."
     rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data="menu:back:menu:main")])
+    rows.append([InlineKeyboardButton(text="🏠 Главное меню", callback_data="menu:main")])
     await callback.message.edit_text(text, reply_markup=_markup(rows), parse_mode="HTML")
     await callback.answer()
 

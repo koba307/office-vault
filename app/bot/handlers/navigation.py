@@ -13,12 +13,14 @@ stale_router = Router()
 
 @router.callback_query(F.data == "menu:main")
 async def main_menu_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
     await state.clear()
     await render_main(callback)
 
 
 @router.callback_query(F.data.startswith("menu:back"))
 async def back_callback(callback: CallbackQuery) -> None:
+    await callback.answer()
     # Адрес родительского экрана передаётся в самом callback: menu:back:{target}
     data = callback.data or ""
     target = data.removeprefix("menu:back:") if data.startswith("menu:back:") else ""
