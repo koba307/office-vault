@@ -371,6 +371,20 @@ MIGRATION_TABLES = {
         "category_roles",
         "registration_requests",
     },
+    "0013": set(LEGACY_BASELINE_COLUMNS)
+    | {
+        "roles", "permissions", "role_permissions", "user_permissions",
+        "user_group_permissions", "category_permissions",
+        "category_group_permissions", "category_user_permissions", "tags",
+        "record_tags", "record_versions", "record_permissions",
+        "record_group_permissions", "record_user_permissions", "files",
+        "file_versions", "record_files", "file_access_logs",
+        "file_scan_results", "recent_records", "user_settings", "import_jobs",
+        "import_errors", "export_jobs", "security_events", "backups",
+        "system_settings", "encryption_key_versions", "background_jobs",
+        "invites", "max_account_issues", "user_roles", "category_roles",
+        "registration_requests",
+    },
 }
 
 
