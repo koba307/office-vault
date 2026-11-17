@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+from app.bot.handlers.menu import get_main_menu_keyboard
 from app.bot.keyboards.layout import smart_layout
 from app.core.config import settings
 from app.database.models import (
@@ -152,7 +153,15 @@ async def reg_confirm(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Состояние устарело. Начните регистрацию заново.", show_alert=True)
         return
     await _create_request(callback, state)
-    await callback.message.edit_text("✅ Запрос на регистрацию отправлен администратору. Ожидайте решения.")
+    async with async_session() as session:
+        me = await get_user_by_telegram_id(session, callback.from_user.id)
+    if me is not None and await is_user_active(me):
+        await callback.message.edit_text("✅ Запрос отправлен.")
+        await callback.message.answer(
+            "🏢 OFFICE VAULT", reply_markup=await get_main_menu_keyboard(user=me)
+        )
+    else:
+        await callback.message.edit_text("✅ Запрос на регистрацию отправлен администратору. Ожидайте решения.")
 
 
 # --- Админ: список заявок ---
@@ -351,6 +360,7 @@ async def unknown_user_any_message(message: Message) -> None:
     async with async_session() as session:
         user = await get_user_by_telegram_id(session, message.from_user.id)
     if user is not None and await is_user_active(user):
+        await message.answer("🏢 OFFICE VAULT", reply_markup=await get_main_menu_keyboard(user=user))
         return
     if user is not None:
         return
