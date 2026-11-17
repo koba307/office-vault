@@ -123,6 +123,7 @@ COACH_TOOLS: tuple[MenuTool, ...] = (
     MenuTool("👥 Пользователи", "admin:users", PermissionCode.MANAGE_USERS.value),
     MenuTool("🛡 Роли и доступы", "admin:roles", PermissionCode.MANAGE_SYSTEM.value),
     MenuTool("📥 Заявки на регистрацию", "reg:list", PermissionCode.MANAGE_USERS.value),
+    MenuTool("📤 Загрузить MAX", "max:upload", PermissionCode.MANAGE_SYSTEM.value),
     MenuTool("📋 Полный аудит", "menu:audit", PermissionCode.VIEW_AUDIT.value),
 )
 
@@ -134,6 +135,7 @@ SUPERADMIN_TOOLS: tuple[MenuTool, ...] = (
     MenuTool("💾 Резервные копии", "menu:backup", PermissionCode.MANAGE_BACKUP.value),
     MenuTool("🔐 Безопасность", "menu:security", PermissionCode.MANAGE_SYSTEM.value),
     MenuTool("📥 Заявки на регистрацию", "reg:list", PermissionCode.MANAGE_USERS.value),
+    MenuTool("📤 Загрузить MAX", "max:upload", PermissionCode.MANAGE_SYSTEM.value),
 )
 
 MANAGER_ROLES = (RoleCode.BOSS, RoleCode.SUPERADMIN)
