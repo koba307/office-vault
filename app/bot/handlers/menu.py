@@ -311,6 +311,11 @@ async def get_main_menu_keyboard(
     for section in role_menu_sections(role, allowed):
         for tool in section:
             buttons.append([InlineKeyboardButton(text=tool.text, callback_data=tool.callback)])
+
+    if role == RoleCode.EMPLOYEE:
+        buttons.append(
+            [InlineKeyboardButton(text="Общее", callback_data="menu:category:general")]
+        )
     return InlineKeyboardMarkup(inline_keyboard=smart_layout(buttons))
 
 
