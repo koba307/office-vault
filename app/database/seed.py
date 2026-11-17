@@ -325,6 +325,7 @@ BOT_ITEMS = {
 
 BOT_CATEGORY_DEFS = [
     ("bots", "Боты", None),
+    ("vpn", "VPN", "general"),
     ("bots_data", "Пробивы/Данные", "bots"),
     ("bots_misc", "Разные", "bots"),
     ("bots_second_stage", "2 этап", "bots"),
@@ -333,8 +334,7 @@ BOT_CATEGORY_DEFS = [
 ]
 
 BOT_CATEGORY_ROLES = {
-    "bots_data": ["holodka", "second_stage", "closers", "COACH"],
-    "bots_misc": ["holodka", "second_stage", "closers", "COACH"],
+    "max": ["second_stage"],
     "bots_second_stage": ["second_stage", "COACH"],
     "bots_closers": ["closers", "COACH"],
 }
@@ -363,6 +363,36 @@ async def _seed_bot_directory(session: AsyncSession) -> None:
         session.add(cat)
         await session.flush()
         categories[code] = cat
+
+    # Общие разделы «Боты» и «VPN» доступны всем активным сотрудникам.
+    existing_cp = {
+        cp.category_id
+        for cp in (await session.execute(select(CategoryPermission))).scalars().all()
+    }
+    for code in ("bots", "bots_data", "bots_misc", "vpn"):
+        cat = categories.get(code)
+        if cat is not None and cat.id not in existing_cp:
+            session.add(
+                CategoryPermission(
+                    category_id=cat.id, access_mode=AccessMode.ALL_EMPLOYEES
+                )
+            )
+            existing_cp.add(cat.id)
+
+    # MAX доступен только роли «2 этап».
+    max_cat = categories.get("max")
+    if max_cat is not None:
+        pass
+
+    # Общие подгруппы ботов не должны иметь.role-ограничений.
+    for code in ("bots_data", "bots_misc"):
+        cat = categories.get(code)
+        if cat is not None:
+            await session.execute(
+                __import__("sqlalchemy").delete(CategoryRole).where(
+                    CategoryRole.category_id == cat.id
+                )
+            )
 
     roles = {r.code: r for r in (await session.execute(select(Role))).scalars().all()}
     existing_cr = {

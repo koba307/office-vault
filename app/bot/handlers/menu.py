@@ -290,6 +290,9 @@ async def get_main_menu_keyboard(
                     continue
                 if getattr(user, "role", None) == RoleCode.EMPLOYEE and cat.code in role_data_codes:
                     continue
+                # Контейнеры «Общие» и внутренние разделы ботов не показываем в главном меню.
+                if cat.code == "general" or cat.code.startswith("bots_"):
+                    continue
                 if not await PermissionService.can(user, "VIEW", "category", cat.id, session):
                     continue
                 prefix = "📂 " if cat.parent_id is not None else ""
@@ -352,6 +355,8 @@ async def render_category(callback: CallbackQuery, category_code: str) -> bool:
         ],
     )
     for child in children:
+        if not await PermissionService.can(user, "VIEW", "category", child.id, session):
+            continue
         buttons.append(
             [
                 InlineKeyboardButton(
