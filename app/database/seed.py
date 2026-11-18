@@ -324,7 +324,7 @@ BOT_ITEMS = {
 }
 
 VPN_ITEMS = [
-    ("VPN аккаунты", "Аккаунт 1\n<code>newwwer5@gmail.com</code>\n<code>Work9889!</code>\n\nАккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>"),
+    ("VPN аккаунты", "Аккаунт 1\n<code>newwwer5@gmail.com</code>\n<code>Work9889!</code>\n\nАккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>\n\nАккаунт 3\n<code>newfree9889@gmail.com</code>\n<code>Work9889!</code>"),
 ]
 
 BOT_CATEGORY_DEFS = [
