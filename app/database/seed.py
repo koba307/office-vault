@@ -324,7 +324,21 @@ BOT_ITEMS = {
 }
 
 VPN_ITEMS = [
-    ("VPN аккаунты", "Аккаунт 1\n<code>newwwer5@gmail.com</code>\n<code>Work9889!</code>\n\nАккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>\n\nАккаунт 3\n<code>newfree9889@gmail.com</code>\n<code>Work9889!</code>"),
+    (
+        "VPN аккаунты",
+        "Аккаунт 1\n<code>newwwer5@gmail.com</code>\n<code>Work9889!</code>\n\n"
+        "Аккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>\n\n"
+        "Аккаунт 3\n<code>newfree9889@gmail.com</code>\n<code>Work9889!</code>\n\n"
+        "SOCKS5 RU (144.172.119.34)\n"
+        + "\n".join(f"<code>tg://socks?server=144.172.119.34&port={p}&user=maxchrome&pass=wdeFLIfBaAjMhyfO</code>" for p in (31849, 31850, 31851, 31852, 31853, 31854))
+        + "\n\nSOCKS5 DE\n<code>tg://socks?server=144.172.119.34&port=31847&user=maxchrome&pass=wdeFLIfBaAjMhyfO</code>\n\n"
+        "SOCKS5 msk-02 (Москва, gost)\n"
+        "<code>tg://socks?server=45.86.79.168&port=1080&user=vps-main&pass=9qauhSESP9RKF0wELTY7P6b4lTaPMK69</code>\n"
+        "<code>tg://socks?server=83.141.92.249&port=1080&user=vps-249&pass=XdyKkXiRMnQnbNfj7LHXF3FrddZcboRv</code>\n\n"
+        "MTProto Germany\n<code>tg://proxy?server=144.172.119.34&port=8443&secret=eedea5aa19ff1962e3d1de2f80f9e76eb07777772e6d6963726f736f66742e636f6d</code>\n\n"
+        "MTProto Frankfurt\n<code>tg://proxy?server=89.169.52.232&port=8443&secret=7mskmZa_hkSzNeLHEss0m1xtaWNyb3NvZnQuY29t</code>\n\n"
+        "MTProto Москва\n<code>tg://proxy?server=171.22.129.133&port=8443&secret=7pTmK58_vicp11bHpZwwN_ZtaWNyb3NvZnQuY29t</code>",
+    ),
 ]
 
 BOT_CATEGORY_DEFS = [
