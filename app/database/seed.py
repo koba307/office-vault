@@ -326,9 +326,14 @@ BOT_ITEMS = {
 VPN_ITEMS = [
     (
         "VPN аккаунты",
-        "Аккаунт 1\n<code>newwwer5@gmail.com</code>\n<code>Work9889!</code>\n\n"
-        "Аккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>\n\n"
-        "Аккаунт 3\n<code>newfree9889@gmail.com</code>\n<code>Work9889!</code>\n\n"
+        (
+            "Аккаунт 1\n<code>newwwer5@gmail.com</code>\n<code>Work9889!</code>\n\n"
+            "Аккаунт 2\n<code>meduzavkisile@gmail.com</code>\n<code>83vaYLXq</code>\n\n"
+            "Аккаунт 3\n<code>newfree9889@gmail.com</code>\n<code>Work9889!</code>"
+        ),
+    ),
+    (
+        "Прокси",
         "SOCKS5 RU (144.172.119.34)\n"
         + "\n".join(f"<code>tg://socks?server=144.172.119.34&port={p}&user=maxchrome&pass=wdeFLIfBaAjMhyfO</code>" for p in (31849, 31850, 31851, 31852, 31853, 31854))
         + "\n\nSOCKS5 DE\n<code>tg://socks?server=144.172.119.34&port=31847&user=maxchrome&pass=wdeFLIfBaAjMhyfO</code>\n\n"
@@ -452,22 +457,40 @@ async def _seed_bot_directory(session: AsyncSession) -> None:
             )
             existing_titles.add(title)
     vpn_cat = categories.get("vpn")
-    if vpn_cat is not None:
-        for title, description in VPN_ITEMS:
-            if title in existing_titles:
-                continue
+    proxies_cat = categories.get("proxies")
+    if proxies_cat is None and vpn_cat is not None:
+        proxies_cat = Category(
+            code="proxies",
+            name="Прокси",
+            parent_id=vpn_cat.id,
+            category_type="subcategory",
+            sort_order=101,
+            status="ACTIVE",
+        )
+        session.add(proxies_cat)
+        await session.flush()
+        categories["proxies"] = proxies_cat
+        if proxies_cat.id not in existing_cp:
             session.add(
-                Record(
-                    id=uuid4(),
-                    category_id=vpn_cat.id,
-                    record_type=RecordType.CREDENTIALS,
-                    title=title,
-                    description=description,
-                    status="ACTIVE",
-                    created_by=superadmin.id,
-                )
+                CategoryPermission(category_id=proxies_cat.id, access_mode=AccessMode.ALL_EMPLOYEES)
             )
-            existing_titles.add(title)
+            existing_cp.add(proxies_cat.id)
+    for title, description in VPN_ITEMS:
+        target = proxies_cat if title == "Прокси" else vpn_cat
+        if target is None or title in existing_titles:
+            continue
+        session.add(
+            Record(
+                id=uuid4(),
+                category_id=target.id,
+                record_type=RecordType.CREDENTIALS,
+                title=title,
+                description=description,
+                status="ACTIVE",
+                created_by=superadmin.id,
+            )
+        )
+        existing_titles.add(title)
     await session.commit()
 
 async def seed_system_data(session: AsyncSession) -> None:
